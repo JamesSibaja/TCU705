@@ -1,16 +1,83 @@
-<campoBD>:
-    TextInput:
+<campoTitulo>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    canvas:
+        Color:
+            rgb: 0.3,0.4,0.65
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
         text: root.g
-        multiline: True
-        readonly: True
-        background_color: 0.92,0.20,0.75,1
-        on_focus: self.focus = False
+        bold: True
+        color: 1,1,1,1
+
+<campoBD1>:
+    orientation: 'vertical'
+    padding: -2
+    canvas:
+        Color:
+            rgb:0.83,0.83,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text_size:self.size
+        padding: (10,0)
+        halign:'left'
+        valign:'middle'
+        text: root.g
+        color: 0,0,0,1
+
+<campoBD2>:
+    orientation: 'vertical'
+    padding: -2
+    canvas:
+        Color:
+            rgb: 0.9,0.9,0.95
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: root.g
+        padding: (10,0)
+        text_size:self.size
+        halign:'left'
+        valign:'middle'
+        color: 0,0,0,1
 
 <MyWidget>:
-    padding: 10
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgb:1,0,1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Pantalla>:
     canvas:
         Color:
             rgb:0,0,0
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<ListaBase>:
+    size_hint: (0.7, 1)
+    orientation: 'horizontal'
+    canvas:
+        Color:
+            rgb:0,0,1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Barra>:
+    size_hint: (0.3, 1)
+    canvas:
+        Color:
+            rgb: 0,0,0
         Rectangle:
             size: self.size
             pos: self.pos
