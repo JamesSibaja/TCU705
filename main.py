@@ -11,6 +11,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty
 from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
+from pdf2image import convert_from_path
+from kivy.uix.textinput import TextInput
+
+pages = convert_from_path('Programa.pdf', 500)
+cont = 0
+for page in pages:
+    page.save('out'+ str(cont) +'.png', 'PNG')
+    cont +=1
 #from kivymd.uix.textfield import MDTextField
 
 Builder.load_file('design.kv')
@@ -25,6 +33,7 @@ class Barra(BoxLayout):
     def __init__(self):
         super(Barra, self).__init__()
         #self.username = MDTextField(text="hola")
+        self.add_widget(TextInput(text='Hello world'))
 
 class ListaBase(BoxLayout):
     def __init__(self,entrada):
