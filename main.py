@@ -13,6 +13,8 @@ from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from pdf2image import convert_from_path
 from kivy.uix.textinput import TextInput
+from kivy.uix.button import Button
+from kivy.uix.stacklayout import StackLayout
 
 pages = convert_from_path('Programa.pdf', 500)
 cont = 0
@@ -26,30 +28,45 @@ Builder.load_file('design.kv')
 class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
-        self.add_widget(Barra())
-        self.add_widget(ListaBase(['Nombre', 'Telefono','Carrera']))
+        self.contenedor = StackLayout(size_hint=(0.3, 1))
+        self.textoUno = TextInput(text='Hello world',size_hint=(1, 0.05))
+        self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
+        self.lista = ListaBase(['Nombre', 'Telefono','Carrera'])
+        self.contenedor.add_widget(self.textoUno)
+        self.contenedor.add_widget(self.submit)
+        self.add_widget(self.contenedor)
+        self.add_widget(self.lista)
 
-class Barra(BoxLayout):
-    def __init__(self):
-        super(Barra, self).__init__()
-        #self.username = MDTextField(text="hola")
-        self.add_widget(TextInput(text='Hello world'))
+    def buscar(self,obj):
+        print('el texto es '+ self.textoUno.text)
+        self.lista.reset()
+        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],busqueda=self.textoUno.text)
+
+
+def on_enter(instance, value):
+    print('User pressed enter in', instance)
 
 class ListaBase(BoxLayout):
     def __init__(self,entrada):
         super(ListaBase, self).__init__()
+        self.build(entrada)
+
+    def build(self,entrada,busqueda=''):
         for row in entrada:
-            self.add_widget(MyWidget(row))
+            self.add_widget(MyWidget(entrada=row,busqueda=busqueda))
+
+    def reset(self):
+       self.clear_widgets()
 
 class MyWidget(BoxLayout):
     
-    def __init__(self,entrada):
+    def __init__(self,entrada,busqueda):
         super(MyWidget, self).__init__()
         color = True
         cont = 0
         texto = ''
         self.add_widget(campoTitulo(entrada))
-        for row in c.execute("SELECT %s FROM CV" %entrada):
+        for row in c.execute("SELECT %s FROM CV WHERE Nombre LIKE ? "%entrada, ('%'+str(busqueda)+'%',)):
             for x in row:
                 texto += x 
                 if color:
