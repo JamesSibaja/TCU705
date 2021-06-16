@@ -28,19 +28,37 @@ Builder.load_file('design.kv')
 class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
-        self.contenedor = StackLayout(size_hint=(0.3, 1))
-        self.textoUno = TextInput(text='Hello world',size_hint=(1, 0.05))
-        self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
-        self.lista = ListaBase(['Nombre', 'Telefono','Carrera'])
-        self.contenedor.add_widget(self.textoUno)
-        self.contenedor.add_widget(self.submit)
+        self.contenedor = StackLayout(size_hint=(0.3, 1)) 
+        self.lista = ListaBase(['Nombre', 'Telefono','Carrera'])  
+        self.listaFiltros =['Nombre', 'Telefono','Carrera']    
+        self.filtros = [] 
+        self.barraTareas()
         self.add_widget(self.contenedor)
         self.add_widget(self.lista)
 
+    def barraTareas(self):
+        self.contenedor.clear_widgets()
+        for filtro in self.listaFiltros:
+            self.filtros.append(TextInput(text=str(filtro),size_hint=(1, 0.05)))
+        n=0
+        for filtro in self.listaFiltros:
+            self.contenedor.add_widget(self.filtros[n])
+            n+=1
+
+        self.textoDos = TextInput(text='Filtro',size_hint=(1, 0.05))
+        self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
+        self.submit2 = Button(text = 'Nuevo Filtro',size_hint=(1, 0.05),on_press=self.nuevo)
+        self.contenedor.add_widget(self.submit)
+        self.contenedor.add_widget(self.textoDos)
+        self.contenedor.add_widget(self.submit2)
+
     def buscar(self,obj):
-        print('el texto es '+ self.textoUno.text)
         self.lista.reset()
-        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],busqueda=self.textoUno.text)
+        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],busqueda=self.filtros[0].text.split())
+
+    def nuevo(self,obj):
+        self.listaFiltros.append(self.textoDos.text.split())
+        self.barraTareas()
 
 
 def on_enter(instance, value):
@@ -51,7 +69,7 @@ class ListaBase(BoxLayout):
         super(ListaBase, self).__init__()
         self.build(entrada)
 
-    def build(self,entrada,busqueda=''):
+    def build(self,entrada,busqueda=['']):
         for row in entrada:
             self.add_widget(MyWidget(entrada=row,busqueda=busqueda))
 
@@ -64,22 +82,23 @@ class MyWidget(BoxLayout):
         super(MyWidget, self).__init__()
         color = True
         cont = 0
-        texto = ''
         self.add_widget(campoTitulo(entrada))
-        for row in c.execute("SELECT %s FROM CV WHERE Nombre LIKE ? "%entrada, ('%'+str(busqueda)+'%',)):
+        filtro = "SELECT "+str(entrada)+" FROM CV WHERE Nombre LIKE '%" + ''+"%'"
+        filtro2 = "SELECT COUNT(*) FROM CV WHERE Nombre LIKE '%" + ''+"%'"
+        for elemento in busqueda:
+            filtro += "and Nombre LIKE '%" + str(elemento)+"%'"
+        for row in c.execute(filtro):
             for x in row:
-                texto += x 
                 if color:
                     
-                    self.add_widget(campoBD1(texto))
+                    self.add_widget(campoBD1(str(x)))
                     color = False
                     
                 else:
-                    self.add_widget(campoBD2(texto))
+                    self.add_widget(campoBD2(str(x)))
                     color = True
                 
             cont += 1
-            texto = ''
             if cont == 15:
                 break
 
@@ -121,7 +140,7 @@ if __name__ == '__main__':
     c = miConexion.cursor()
     df = pd.read_excel(path)
 
-    df.to_sql(name = table, con = miConexion, if_exists = 'append', index = False)
+    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
     
 
     myApp().run()
