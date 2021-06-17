@@ -29,35 +29,59 @@ class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
         self.contenedor = StackLayout(size_hint=(0.3, 1)) 
-        self.lista = ListaBase(['Nombre', 'Telefono','Carrera'])  
-        self.listaFiltros =['Nombre', 'Telefono','Carrera']    
-        self.filtros = [] 
+        self.lista = ListaBase(['Nombre','Telefono','Carrera'])  
+        self.listaFiltros =[]
+        self.palabrasBuscadas=[]
+        self.nuevoFiltro = False
         self.barraTareas()
         self.add_widget(self.contenedor)
         self.add_widget(self.lista)
 
     def barraTareas(self):
         self.contenedor.clear_widgets()
-        for filtro in self.listaFiltros:
-            self.filtros.append(TextInput(text=str(filtro),size_hint=(1, 0.05)))
-        n=0
-        for filtro in self.listaFiltros:
-            self.contenedor.add_widget(self.filtros[n])
-            n+=1
+        self.filtros = []
+        if self.nuevoFiltro:
+            self.filtrosBotones = []
+            for posibleFiltro in df:
+                self.filtrosBotones.append(Button(text = str(posibleFiltro),size_hint=(0.9, 0.05),on_press=self.nuevoFinal))
+            n=0
+            for botonFiltro in self.filtrosBotones:
+                self.contenedor.add_widget(self.filtrosBotones[n])
+                n+=1
+            self.nuevoFiltro = False
+        else:
+            if self.palabrasBuscadas != []:
+                for filtro in self.palabrasBuscadas:
+                    self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))           
+            else:
+                for filtro in self.listaFiltros:
+                    self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))
 
-        self.textoDos = TextInput(text='Filtro',size_hint=(1, 0.05))
-        self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
-        self.submit2 = Button(text = 'Nuevo Filtro',size_hint=(1, 0.05),on_press=self.nuevo)
-        self.contenedor.add_widget(self.submit)
-        self.contenedor.add_widget(self.textoDos)
-        self.contenedor.add_widget(self.submit2)
+            n=0
+            for filtro in self.filtros:
+                self.contenedor.add_widget(tituloFiltro(self.listaFiltros[n]))
+                self.contenedor.add_widget(self.filtros[n])
+                n+=1
+            self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
+            self.submit2 = Button(text = 'Nuevo Filtro',size_hint=(1, 0.05),on_press=self.nuevoInicio)
+            self.contenedor.add_widget(self.submit)
+            self.contenedor.add_widget(self.submit2)
 
     def buscar(self,obj):
         self.lista.reset()
-        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],busqueda=self.filtros[0].text.split())
+        self.palabrasBuscadas=[]
+        for filtro in self.filtros:
+            self.palabrasBuscadas.append(filtro.text)
+        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],filtros= self.listaFiltros,busqueda=self.filtros)
 
-    def nuevo(self,obj):
-        self.listaFiltros.append(self.textoDos.text.split())
+    def nuevoInicio(self,obj):
+        #self.listaFiltros.append(self.textoDos.text)
+        self.nuevoFiltro = True
+        self.barraTareas()
+
+    def nuevoFinal(self,obj):
+        self.listaFiltros.append(obj.text)
+        self.palabrasBuscadas.append('')
         self.barraTareas()
 
 
@@ -67,26 +91,31 @@ def on_enter(instance, value):
 class ListaBase(BoxLayout):
     def __init__(self,entrada):
         super(ListaBase, self).__init__()
-        self.build(entrada)
+        self.build(entrada =entrada)
 
-    def build(self,entrada,busqueda=['']):
+    def build(self,entrada,filtros=['Nombre'],busqueda=['']):
         for row in entrada:
-            self.add_widget(MyWidget(entrada=row,busqueda=busqueda))
+            self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
 
     def reset(self):
        self.clear_widgets()
 
 class MyWidget(BoxLayout):
     
-    def __init__(self,entrada,busqueda):
+    def __init__(self,entrada,filtros,busqueda):
         super(MyWidget, self).__init__()
         color = True
         cont = 0
         self.add_widget(campoTitulo(entrada))
-        filtro = "SELECT "+str(entrada)+" FROM CV WHERE Nombre LIKE '%" + ''+"%'"
-        filtro2 = "SELECT COUNT(*) FROM CV WHERE Nombre LIKE '%" + ''+"%'"
+        filtro = "SELECT "+str(entrada)+" FROM CV"
+        n=0
+        if busqueda != ['']:
+            filtro +=" WHERE "+filtros[n]+" LIKE '% %'"
         for elemento in busqueda:
-            filtro += "and Nombre LIKE '%" + str(elemento)+"%'"
+            if elemento != '':
+                for palabra in elemento.text.split():
+                    filtro += "and "+filtros[n]+" LIKE '%" + str(palabra)+"%'"
+                n+=1
         for row in c.execute(filtro):
             for x in row:
                 if color:
@@ -106,6 +135,12 @@ class campoTitulo(BoxLayout):
     g = StringProperty()
     def __init__(self,texto):
         super(campoTitulo, self).__init__()
+        self.g = texto
+
+class tituloFiltro(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(tituloFiltro, self).__init__()
         self.g = texto
 
 class campoBD1(BoxLayout):

@@ -12,6 +12,21 @@
         bold: True
         color: 1,1,1,1
 
+<tituloFiltro>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint: (0.4, 0.05)
+    canvas:
+        Color:
+            rgb: 0.3,0.4,0.65
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Label:
+        text: root.g
+        bold: True
+        color: 1,1,1,1
+
 <campoBD1>:
     orientation: 'vertical'
     padding: -2
