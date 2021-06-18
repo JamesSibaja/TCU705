@@ -8,13 +8,21 @@ Config.set('kivy', 'keyboard_mode', 'system')
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty
+from kivy.uix.scatter import Scatter
+from kivy.properties import StringProperty, BooleanProperty
 from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from pdf2image import convert_from_path
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.stacklayout import StackLayout
+from kivy.uix.image import Image 
+
+from kivy.uix.scatterlayout import ScatterLayout
+from kivy.core.window import Window
+from kivy.graphics.transformation import Matrix
+
+#from PIL import Image
 
 pages = convert_from_path('Programa.pdf', 500)
 cont = 0
@@ -24,11 +32,25 @@ for page in pages:
 #from kivymd.uix.textfield import MDTextField
 
 Builder.load_file('design.kv')
+# print('-------------------------------------')
+# img=Image.open('out.png')
+# img.show()
+# print(img)
+# print('-------------------------------------')
+class Picture(Scatter):
+    source = StringProperty(None)
+
+class Barra(StackLayout):
+    pass
 
 class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
-        self.contenedor = StackLayout(size_hint=(0.3, 1)) 
+       # picture = Picture(source='out.png')
+       # self.add_widget(picture)
+        # img = Zoom()
+        # self.add_widget(img)
+        self.contenedor = Barra() 
         self.lista = ListaBase(['Nombre','Telefono','Carrera'])  
         self.listaFiltros =[]
         self.palabrasBuscadas=[]
@@ -43,7 +65,7 @@ class Pantalla(BoxLayout):
         if self.nuevoFiltro:
             self.filtrosBotones = []
             for posibleFiltro in df:
-                self.filtrosBotones.append(Button(text = str(posibleFiltro),size_hint=(0.9, 0.05),on_press=self.nuevoFinal))
+                self.filtrosBotones.append(Button(text = str(posibleFiltro),background_color =(0, 0.59, 0.81, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal))
             n=0
             for botonFiltro in self.filtrosBotones:
                 self.contenedor.add_widget(self.filtrosBotones[n])
@@ -66,6 +88,7 @@ class Pantalla(BoxLayout):
             self.submit2 = Button(text = 'Nuevo Filtro',size_hint=(1, 0.05),on_press=self.nuevoInicio)
             self.contenedor.add_widget(self.submit)
             self.contenedor.add_widget(self.submit2)
+            
 
     def buscar(self,obj):
         self.lista.reset()
@@ -88,45 +111,96 @@ class Pantalla(BoxLayout):
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
+class Picture(Image):
+    pass
+
 class ListaBase(BoxLayout):
     def __init__(self,entrada):
         super(ListaBase, self).__init__()
-        self.build(entrada =entrada)
+        self.build(entrada =entrada,imagen=True)
 
-    def build(self,entrada,filtros=['Nombre'],busqueda=['']):
+    def build(self,entrada,filtros=[],busqueda=[],imagen=False):
+      
         for row in entrada:
             self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
+        self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
 
     def reset(self):
        self.clear_widgets()
 
+class Zoom(ScatterLayout):
+
+    def on_touch_down(self, touch):
+        x, y = touch.x, touch.y
+        self.prev_x = touch.x
+        self.prev_y = touch.y
+        self.add_widget(Image(source='out.png'))
+
+        if touch.is_mouse_scrolling:
+            if touch.button == 'scrolldown':
+                print('down')
+                ## zoom in
+                if self.scale < 10:
+                    self.scale = self.scale * 1.1
+
+            elif touch.button == 'scrollup':
+                print('up')  ## zoom out
+                if self.scale > 1:
+                    self.scale = self.scale * 0.9
+
+        # if the touch isn't on the widget we do nothing
+        if not self.do_collide_after_children:
+            if not self.collide_point(x, y):
+                return False
+
+        if 'multitouch_sim' in touch.profile:
+            touch.multitouch_sim = True
+        # grab the touch so we get all it later move events for sure
+        self._bring_to_front(touch)
+        touch.grab(self)
+        self._touches.append(touch)
+        self._last_touch_pos[touch] = touch.pos
+
+        return True
+
 class MyWidget(BoxLayout):
-    
-    def __init__(self,entrada,filtros,busqueda):
+    end = BooleanProperty()
+    def __init__(self,entrada,filtros,busqueda,endRow=False):
         super(MyWidget, self).__init__()
+        self.end = endRow
         color = True
         cont = 0
-        self.add_widget(campoTitulo(entrada))
+        if(endRow):
+            self.add_widget(campoTitulo(''))
+        else:
+            self.add_widget(campoTitulo(entrada))
         filtro = "SELECT "+str(entrada)+" FROM CV"
         n=0
-        if busqueda != ['']:
-            filtro +=" WHERE "+filtros[n]+" LIKE '% %'"
+        primero=True
         for elemento in busqueda:
-            if elemento != '':
+            if elemento.text.split() != []:
+                if primero:
+                    filtro +=" WHERE "
+
                 for palabra in elemento.text.split():
-                    filtro += "and "+filtros[n]+" LIKE '%" + str(palabra)+"%'"
-                n+=1
+                    if primero:
+                        primero = False
+                        filtro +=filtros[n]+" LIKE '%" + str(palabra)+"%'"
+                    else:
+                        filtro +="and "+filtros[n]+" LIKE '%" + str(palabra)+"%'"
+            n+=1
+        color = False
+        print(filtro)
         for row in c.execute(filtro):
+            
             for x in row:
-                if color:
-                    
-                    self.add_widget(campoBD1(str(x)))
-                    color = False
-                    
+                if(endRow):
+                    campo = campoBD2(color)
+                    self.add_widget(campo)
                 else:
-                    self.add_widget(campoBD2(str(x)))
-                    color = True
-                
+                    self.add_widget(campoBD1(str(x),color))
+                color = not color
+                                    
             cont += 1
             if cont == 15:
                 break
@@ -145,16 +219,17 @@ class tituloFiltro(BoxLayout):
 
 class campoBD1(BoxLayout):
     g = StringProperty()
-    def __init__(self,texto):
+    color = BooleanProperty()
+    def __init__(self,texto,colorCampo):
         super(campoBD1, self).__init__()
         self.g = texto
+        self.color=colorCampo
 
 class campoBD2(BoxLayout):
-    g = StringProperty()
-    def __init__(self,texto):
+    color = BooleanProperty()
+    def __init__(self,colorCampo):
         super(campoBD2, self).__init__()
-        self.g = texto
-
+        self.color=colorCampo
 
 class myApp(App):
     title = 'Plataforma'
@@ -164,6 +239,7 @@ class myApp(App):
         return True
     def on_resume(self):
         pass
+    
 
 if __name__ == '__main__':
 
