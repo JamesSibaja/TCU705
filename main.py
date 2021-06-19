@@ -16,11 +16,13 @@ from pdf2image import convert_from_path
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.stacklayout import StackLayout
-from kivy.uix.image import Image 
-
+from kivy.uix.pagelayout import PageLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
+from kivy.uix.image import Image 
+from kivy.effects.scroll import ScrollEffect
 
 #from PIL import Image
 
@@ -43,6 +45,9 @@ class Picture(Scatter):
 class Barra(StackLayout):
     pass
 
+class Barra2(StackLayout):
+    pass
+
 class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
@@ -50,14 +55,19 @@ class Pantalla(BoxLayout):
        # self.add_widget(picture)
         # img = Zoom()
         # self.add_widget(img)
-        self.contenedor = Barra() 
-        self.lista = ListaBase(['Nombre','Telefono','Carrera'])  
+        self.divisor=Divisor()
+        self.contenedor = Barra()  
         self.listaFiltros =[]
+        self.lista = MyWidget(['Nombre','Telefono','Carrera']) 
+        #self.principal=ScrollView(do_scroll_y= True,size_hint=(1, None), size=(Window.width, Window.height))
         self.palabrasBuscadas=[]
         self.nuevoFiltro = False
         self.barraTareas()
-        self.add_widget(self.contenedor)
+        self.divisor.add_widget(self.contenedor)
+        
+        self.add_widget(self.divisor)
         self.add_widget(self.lista)
+        #self.add_widget(self.principal)
 
     def barraTareas(self):
         self.contenedor.clear_widgets()
@@ -72,6 +82,10 @@ class Pantalla(BoxLayout):
                 n+=1
             self.nuevoFiltro = False
         else:
+            self.submit = Button(text = 'Buscar',background_color =(0, 0.81, 0.59, 1),size_hint=(1, 0.05),on_press=self.buscar)
+            self.submit2 = Button(text = 'Nuevo Filtro',background_color =(0, 0.81, 0.59, 1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
+            self.contenedor.add_widget(self.submit)
+            self.contenedor.add_widget(self.submit2)
             if self.palabrasBuscadas != []:
                 for filtro in self.palabrasBuscadas:
                     self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))           
@@ -80,14 +94,13 @@ class Pantalla(BoxLayout):
                     self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))
 
             n=0
+            self.contenedor.add_widget(Separador())
             for filtro in self.filtros:
+                
                 self.contenedor.add_widget(tituloFiltro(self.listaFiltros[n]))
                 self.contenedor.add_widget(self.filtros[n])
                 n+=1
-            self.submit = Button(text = 'Buscar',size_hint=(1, 0.05),on_press=self.buscar)
-            self.submit2 = Button(text = 'Nuevo Filtro',size_hint=(1, 0.05),on_press=self.nuevoInicio)
-            self.contenedor.add_widget(self.submit)
-            self.contenedor.add_widget(self.submit2)
+           
             
 
     def buscar(self,obj):
@@ -114,17 +127,26 @@ def on_enter(instance, value):
 class Picture(Image):
     pass
 
+class Page(PageLayout):
+    def __init__(self):
+        super(Page, self).__init__()
+        self.lista = ListaBase(['Nombre','Telefono','Carrera']) 
+        self.lista2 = ListaBase(['Nombre','Telefono','Carrera']) 
+        self.lista3 = ListaBase(['Nombre','Telefono','Carrera']) 
+        self.add_widget(self.lista) 
+        self.add_widget(self.lista2) 
+        self.add_widget(self.lista3) 
+
 class ListaBase(BoxLayout):
     def __init__(self,entrada):
         super(ListaBase, self).__init__()
         self.build(entrada =entrada,imagen=True)
 
     def build(self,entrada,filtros=[],busqueda=[],imagen=False):
-      
-        for row in entrada:
-            self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
-        self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
-
+        # for row in entrada:
+        #     self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
+        # self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
+        self.add_widget(MyWidget(entrada=entrada,filtros=filtros,busqueda=busqueda))
     def reset(self):
        self.clear_widgets()
 
@@ -163,18 +185,35 @@ class Zoom(ScatterLayout):
 
         return True
 
-class MyWidget(BoxLayout):
+class MyWidget(ScrollView):
     end = BooleanProperty()
-    def __init__(self,entrada,filtros,busqueda,endRow=False):
+    def __init__(self,entrada):
         super(MyWidget, self).__init__()
-        self.end = endRow
+        self.build(entrada =entrada,imagen=True)
+
+    def build(self,entrada,filtros=[],busqueda=[],imagen=False):
+        #self.principal=ScrollView(effect_cls= ScrollEffect,do_scroll_y= True,size_hint=(1, 1))
+        #self.end = endRow
+        self.contenedor=Barra2(size_hint_y= None)
+        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
+        self.filas=[]
         color = True
         cont = 0
-        if(endRow):
-            self.add_widget(campoTitulo(''))
-        else:
-            self.add_widget(campoTitulo(entrada))
-        filtro = "SELECT "+str(entrada)+" FROM CV"
+        # if(endRow):
+        #     self.contenedor.add_widget(campoTitulo(''))
+        # else:
+        #     self.contenedor.add_widget(campoTitulo(entrada))
+        # filtro = "SELECT "+str(entrada)+" FROM CV"
+        filtro = "SELECT "
+        self.filas.append(Fila())
+        for selectField in entrada:
+            self.filas[len(self.filas)-1].add_widget(campoTitulo(selectField))
+            filtro +=str(selectField )
+            if(selectField != entrada[len(entrada)-1]):
+                filtro += ", "
+        filtro += " "
+
+        filtro +=" FROM CV"
         n=0
         primero=True
         for elemento in busqueda:
@@ -192,18 +231,28 @@ class MyWidget(BoxLayout):
         color = False
         print(filtro)
         for row in c.execute(filtro):
-            
+            self.filas.append(Fila())
             for x in row:
-                if(endRow):
-                    campo = campoBD2(color)
-                    self.add_widget(campo)
-                else:
-                    self.add_widget(campoBD1(str(x),color))
-                color = not color
-                                    
+                # if(endRow):
+                #     campo = campoBD2(color)
+                #     self.filas[len(self.filas)-1].add_widget(campo)
+                # else:
+                #     self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+            color = not color
+                                   
             cont += 1
-            if cont == 15:
+            if cont == 50:
                 break
+        for row in self.filas:
+            self.contenedor.add_widget(row)
+        # for i in range(50):
+        #     self.contenedor.add_widget(Button(size_hint_y= None))
+        self.add_widget(self.contenedor)
+        # self.add_widget(self.principal)
+
+    def reset(self):
+       self.clear_widgets()
 
 class campoTitulo(BoxLayout):
     g = StringProperty()
@@ -216,6 +265,15 @@ class tituloFiltro(BoxLayout):
     def __init__(self,texto):
         super(tituloFiltro, self).__init__()
         self.g = texto
+
+class Separador(BoxLayout):
+    pass
+
+class Divisor(BoxLayout):
+    pass
+
+class Fila(BoxLayout):
+    pass
 
 class campoBD1(BoxLayout):
     g = StringProperty()
