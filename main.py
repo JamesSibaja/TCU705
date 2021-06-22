@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd	
 from kivy.uix.label import Label
+import math
 
 # config
 from kivy.config import Config
@@ -23,6 +24,7 @@ from kivy.core.window import Window
 from kivy.graphics.transformation import Matrix
 from kivy.uix.image import Image 
 from kivy.effects.scroll import ScrollEffect
+from kivy.uix.anchorlayout import AnchorLayout
 
 #from PIL import Image
 
@@ -56,68 +58,201 @@ class Pantalla(BoxLayout):
         # img = Zoom()
         # self.add_widget(img)
         self.divisor=Divisor()
+        self.numPag = 0
         self.contenedor = Barra()  
         self.listaFiltros =[]
-        self.lista = MyWidget(['Nombre','Telefono','Carrera']) 
+        self.filaTitulo = Fila2()
+        self.pagina = Fila2()
+        self.camposOpcion = []
+        self.filtrosOpcion = []
+        self.filtros = []
+        self.campos = []
+        contCampos=0
+        for selectField in df:
+            if(contCampos<3):
+                self.camposOpcion.append(True)
+                self.campos.append(str(selectField))
+            else:
+                self.camposOpcion.append(False)
+            self.filtrosOpcion.append(False)
+            contCampos+=1
+        self.lista = MyWidget(entrada=self.campos,pag = self.numPag)
+        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        #self.pagina.add_widget(BoxLayout(text='Siguiente',on_press=self.nuevaPagina()))
+        self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+        self.contenedorLista = BoxLayout(orientation= 'vertical')
+        for selectField in self.campos:
+            self.filaTitulo.add_widget(campoTitulo(selectField))
+            
+        
         #self.principal=ScrollView(do_scroll_y= True,size_hint=(1, None), size=(Window.width, Window.height))
         self.palabrasBuscadas=[]
         self.nuevoFiltro = False
+        self.cambiarCampo = False
         self.barraTareas()
         self.divisor.add_widget(self.contenedor)
         
         self.add_widget(self.divisor)
-        self.add_widget(self.lista)
+        self.contenedorLista.add_widget(self.filaTitulo)
+        self.contenedorLista.add_widget(self.lista)
+        self.contenedorLista.add_widget(self.pagina)
+        self.add_widget(self.contenedorLista)
         #self.add_widget(self.principal)
+
+    def siguientePagina(self,obj):
+        self.lista.reset()
+        self.palabrasBuscadas=[]
+        for filtro in self.filtros:
+            self.palabrasBuscadas.append(filtro.text)
+        self.numPag +=1
+        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.pagina.clear_widgets()
+        if(self.numPag>0):
+            self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
+        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
+            self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+
+    def anteriorPagina(self,obj):
+        self.lista.reset()
+        self.palabrasBuscadas=[]
+        for filtro in self.filtros:
+            self.palabrasBuscadas.append(filtro.text)
+        self.numPag = self.numPag-1
+        if(self.numPag<math.ceil(self.lista.totalDatos/50)):
+            self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        
+        self.pagina.clear_widgets()
+        if(self.numPag>0):
+            self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
+        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
+            self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+        
 
     def barraTareas(self):
         self.contenedor.clear_widgets()
-        self.filtros = []
-        if self.nuevoFiltro:
+        if self.nuevoFiltro or self.cambiarCampo:
             self.filtrosBotones = []
+            contBotones =0
             for posibleFiltro in df:
-                self.filtrosBotones.append(Button(text = str(posibleFiltro),background_color =(0, 0.59, 0.81, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal))
+                if(self.cambiarCampo):
+                    self.newBoton= Button(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
+                if(self.nuevoFiltro):
+                    self.newBoton= Button(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
+                
+                self.newBoton.bind(text_size=self.newBoton.setter('height'))
+                self.filtrosBotones.append(self.newBoton)
+                contBotones +=1
             n=0
             for botonFiltro in self.filtrosBotones:
                 self.contenedor.add_widget(self.filtrosBotones[n])
                 n+=1
-            self.nuevoFiltro = False
+            self.contenedor.add_widget(Button(border= (10,10,10,10),text = 'Aceptar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.aceptarCambios))
+
         else:
-            self.submit = Button(text = 'Buscar',background_color =(0, 0.81, 0.59, 1),size_hint=(1, 0.05),on_press=self.buscar)
-            self.submit2 = Button(text = 'Nuevo Filtro',background_color =(0, 0.81, 0.59, 1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
+            self.filtros = []
+            self.submit = Button(border= (10,10,10,10),text = 'Buscar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.buscar)
+            self.submit2 = Button(border= (10,10,10,1),text = 'Nuevo Filtro',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
+            self.submit3 = Button(border= (10,10,10,1),text = 'Cambiar Campos',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoCampo)
             self.contenedor.add_widget(self.submit)
             self.contenedor.add_widget(self.submit2)
-            if self.palabrasBuscadas != []:
-                for filtro in self.palabrasBuscadas:
-                    self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))           
-            else:
-                for filtro in self.listaFiltros:
-                    self.filtros.append(TextInput(text=str(filtro),size_hint=(0.6, 0.05)))
+            self.contenedor.add_widget(self.submit3)
+            print('----------------')
+            print(self.palabrasBuscadas)
+            # if self.palabrasBuscadas != []:
+            #     for filtro in self.palabrasBuscadas:
+            #         self.filtros.append(TextInput(text='str(filtro)',size_hint=(0.6, 0.05)))           
+            # else:
+            contTexto =0
+            print('-----------------------------')
+            print(self.palabrasBuscadas)
+            print(self.listaFiltros)
+            print('-----------------------------')
 
+            for filtro in self.listaFiltros:
+                self.filtros.append(TextInput(text=str(self.palabrasBuscadas[contTexto]),size_hint=(0.6, 0.05)))
+                contTexto +=1
             n=0
             self.contenedor.add_widget(Separador())
+            
             for filtro in self.filtros:
                 
-                self.contenedor.add_widget(tituloFiltro(self.listaFiltros[n]))
+                self.contenedor.add_widget(tituloFiltro(texto=self.listaFiltros[n]))
                 self.contenedor.add_widget(self.filtros[n])
                 n+=1
            
-            
+    def cambiarColumnas(self):
+        self.lista.reset()
+        self.campos=[]
+        contColum = 0
+        for field in df:
+            if(self.camposOpcion[contColum]):
+                self.campos.append(str(field))
+            contColum += 1
+        self.filaTitulo.clear_widgets()
+        for selectField in self.campos:
+            self.filaTitulo.add_widget(campoTitulo(selectField))
+        self.lista.build(entrada=self.campos,filtros= self.listaFiltros,pag=self.numPag,busqueda=self.filtros)       
 
     def buscar(self,obj):
         self.lista.reset()
         self.palabrasBuscadas=[]
         for filtro in self.filtros:
             self.palabrasBuscadas.append(filtro.text)
-        self.lista.build(entrada=['Nombre', 'Telefono','Carrera'],filtros= self.listaFiltros,busqueda=self.filtros)
-
+        self.numPag = 0
+        self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.pagina.clear_widgets()
+        if(self.numPag>0):
+            self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
+        
+        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
+                self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+                
     def nuevoInicio(self,obj):
         #self.listaFiltros.append(self.textoDos.text)
+        self.palabrasBuscadas=[]
+        for filtro in self.filtros:
+            self.palabrasBuscadas.append(filtro.text)
         self.nuevoFiltro = True
         self.barraTareas()
 
     def nuevoFinal(self,obj):
-        self.listaFiltros.append(obj.text)
-        self.palabrasBuscadas.append('')
+        if (self.nuevoFiltro):
+            contFiltro = 0
+            for field in df:
+                if (field == obj.text):
+                    self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
+                contFiltro += 1
+            self.palabrasBuscadas.append('')
+            self.barraTareas()
+
+        if (self.cambiarCampo):
+            contTitulo = 0
+            for field in df:
+                if(field == obj.text):
+                    self.camposOpcion[contTitulo] = not self.camposOpcion[contTitulo]
+                contTitulo += 1 
+
+            self.barraTareas()
+            
+    def aceptarCambios(self,obj):
+            if(self.cambiarCampo):
+                self.cambiarColumnas()
+            if(self.nuevoFiltro):
+                contFiltro = 0
+                self.listaFiltros = []
+                for field in df:
+                    if (self.filtrosOpcion[contFiltro]):
+                        self.listaFiltros.append(str(field))
+                    contFiltro += 1
+            self.cambiarCampo = False
+            self.nuevoFiltro = False
+            self.barraTareas()
+
+    def nuevoCampo(self,obj):
+        self.cambiarCampo = True
         self.barraTareas()
 
 
@@ -187,11 +322,11 @@ class Zoom(ScatterLayout):
 
 class MyWidget(ScrollView):
     end = BooleanProperty()
-    def __init__(self,entrada):
+    def __init__(self,entrada,pag=0):
         super(MyWidget, self).__init__()
-        self.build(entrada =entrada,imagen=True)
+        self.build(entrada =entrada,imagen=True,pag=0)
 
-    def build(self,entrada,filtros=[],busqueda=[],imagen=False):
+    def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
         #self.principal=ScrollView(effect_cls= ScrollEffect,do_scroll_y= True,size_hint=(1, 1))
         #self.end = endRow
         self.contenedor=Barra2(size_hint_y= None)
@@ -199,16 +334,15 @@ class MyWidget(ScrollView):
         self.filas=[]
         color = True
         cont = 0
+        cont2 = 0
         # if(endRow):
         #     self.contenedor.add_widget(campoTitulo(''))
         # else:
         #     self.contenedor.add_widget(campoTitulo(entrada))
         # filtro = "SELECT "+str(entrada)+" FROM CV"
         filtro = "SELECT "
-        self.filas.append(Fila())
         for selectField in entrada:
-            self.filas[len(self.filas)-1].add_widget(campoTitulo(selectField))
-            filtro +=str(selectField )
+            filtro += "`" + str(selectField) + "`"
             if(selectField != entrada[len(entrada)-1]):
                 filtro += ", "
         filtro += " "
@@ -224,26 +358,33 @@ class MyWidget(ScrollView):
                 for palabra in elemento.text.split():
                     if primero:
                         primero = False
-                        filtro +=filtros[n]+" LIKE '%" + str(palabra)+"%'"
+                        filtro +="`" + str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
                     else:
-                        filtro +="and "+filtros[n]+" LIKE '%" + str(palabra)+"%'"
+                        filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
             n+=1
         color = False
         print(filtro)
+        stop = False
         for row in c.execute(filtro):
-            self.filas.append(Fila())
-            for x in row:
-                # if(endRow):
-                #     campo = campoBD2(color)
-                #     self.filas[len(self.filas)-1].add_widget(campo)
-                # else:
-                #     self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
-                self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
-            color = not color
-                                   
-            cont += 1
-            if cont == 50:
-                break
+            if((cont2 == pag*50 or cont2 > pag*50) and not stop):
+                self.filas.append(Fila())
+                for x in row:
+                    # if(endRow):
+                    #     campo = campoBD2(color)
+                    #     self.filas[len(self.filas)-1].add_widget(campo)
+                    # else:
+                    #     self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                    self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                color = not color
+                                    
+                cont += 1
+                if cont == 50:
+                    stop = True
+            else:
+                pass
+            cont2 += 1
+            
+        self.totalDatos = cont2
         for row in self.filas:
             self.contenedor.add_widget(row)
         # for i in range(50):
@@ -262,9 +403,11 @@ class campoTitulo(BoxLayout):
 
 class tituloFiltro(BoxLayout):
     g = StringProperty()
-    def __init__(self,texto):
+    filtro = BooleanProperty()
+    def __init__(self,texto,filtro = True):
         super(tituloFiltro, self).__init__()
         self.g = texto
+        self.filtro =filtro
 
 class Separador(BoxLayout):
     pass
@@ -273,6 +416,12 @@ class Divisor(BoxLayout):
     pass
 
 class Fila(BoxLayout):
+    pass
+
+class Fila2(BoxLayout):
+    pass
+
+class Fila3(BoxLayout):
     pass
 
 class campoBD1(BoxLayout):
@@ -311,7 +460,6 @@ if __name__ == '__main__':
 
     df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
     
-
     myApp().run()
 
     c.close

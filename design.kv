@@ -6,14 +6,11 @@
     # to the center of the screen.
     allow_stretch: True
     elevation: 0
-
-
-                
+       
 <campoTitulo>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
-    size_hint_y: None
-    minimum_height: self.height
+    size_hint:(1,1)
     canvas:
         Color:
             rgb: 0.3,0.4,0.65
@@ -28,13 +25,8 @@
 <tituloFiltro>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
-    size_hint: (0.4, 0.05)
-    canvas:
-        Color:
-            rgb: (0, 0.30, 0.40)
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    size_hint:  (0.4, 0.05) if root.filtro else (1,1)
+
     Label:
         text: root.g
         bold: True
@@ -43,7 +35,7 @@
 <Separador>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
-    size_hint: (1, 0.01)
+    size_hint: (1, 0.01) 
     canvas:
         Color:
             rgb: (0, 0.30, 0.40)
@@ -53,12 +45,13 @@
     Label:
         bold: True
         color: 1,1,1,1
+
     
 <campoBD1>:
     orientation: 'vertical'
     padding: -2
-    size_hint_y: None
-    minimum_height: self.height
+    size_hint_y:None
+    height:60
     
     canvas:
         Color:
@@ -103,26 +96,12 @@
 <MyWidget>:
     effect_cls: ScrollEffect
     do_scroll_y: True
-    size_hint: (0.75, 1)
-    # canvas:
-    #     Color:
-    #         rgb: (0.2, 0.35, 0.43)
-    #     Rectangle:
-    #         size: self.size
-    #         pos: self.pos
-
-    # effect_cls: ScrollEffect
-    # size_hint: (0.7,1)
-    # StackLayout:
-    #     size_hint_y: None
-    #     height: self.minimum_height
-    #     on_parent:
-    #         for i in range(10): self.add_widget(Button(text=str(i), size_hint_y=None))
+    size_hint: (1,0.88)
 
 <Pantalla>:
     canvas:
         Color:
-            rgb: 0,0,0
+            rgb:0.72,0.72,0.72
         Rectangle:
             size: self.size
             pos: self.pos
@@ -138,14 +117,46 @@
 
 <Fila>:
     orientation: 'horizontal'
-    size_hint_y: None
-    minimum_height: self.height
+    size_hint_y:None
+    height:60
     canvas:
         Color:
             rgb:0.72,0.72,0.72
         Rectangle:
             size: self.size
             pos: self.pos
+
+<Fila2>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+    canvas:
+        Color:
+            rgb:0.72,0.72,0.72
+        Rectangle:
+            size: self.size
+            pos: self.pos
+            
+<Fila3>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+    #on_press: self.nuevaPagina()
+    AnchorLayout:
+        
+        canvas.before:
+            Color:
+                rgb:0.72,0.72,0.72
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        anchor_x: 'center'
+        anchor_y: 'center'
+
+        # Button:
+        #     text: 'Siguiente'
+        #     size_hint: (0.9, 0.6)
+
+        #     anchor_x: 'center'
+        #     anchor_y: 'center'
 
 <Barra>:
     size_hint: (1, 1)
@@ -158,8 +169,8 @@
             pos: self.pos
 
 <Barra2>:
-    # size_hint_y: None
-    # minimum_height: self.height
+    size_hint_y: None
+    minimum_height: self.height
     canvas:
         Color:
             rgb: (0.2, 0.35, 0.43)
@@ -169,7 +180,7 @@
 
 <Divisor>:
     size_hint: (0.25, 1)
-    padding: (0,0,1,0)
+    padding: (0,0,0,0)
     canvas:
         Color:
             rgb: (0.2, 0.2, 0.2)
