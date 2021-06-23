@@ -86,7 +86,7 @@ class Pantalla(BoxLayout):
             
         
         #self.principal=ScrollView(do_scroll_y= True,size_hint=(1, None), size=(Window.width, Window.height))
-        self.palabrasBuscadas=[]
+        self.palabrasBuscadas={}
         self.nuevoFiltro = False
         self.cambiarCampo = False
         self.barraTareas()
@@ -101,9 +101,9 @@ class Pantalla(BoxLayout):
 
     def siguientePagina(self,obj):
         self.lista.reset()
-        self.palabrasBuscadas=[]
-        for filtro in self.filtros:
-            self.palabrasBuscadas.append(filtro.text)
+        # self.palabrasBuscadas=[]
+        # for filtro in self.filtros:
+        #     self.palabrasBuscadas.append(filtro.text)
         self.numPag +=1
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.pagina.clear_widgets()
@@ -115,9 +115,9 @@ class Pantalla(BoxLayout):
 
     def anteriorPagina(self,obj):
         self.lista.reset()
-        self.palabrasBuscadas=[]
-        for filtro in self.filtros:
-            self.palabrasBuscadas.append(filtro.text)
+        # self.palabrasBuscadas=[]
+        # for filtro in self.filtros:
+        #     self.palabrasBuscadas.append(filtro.text)
         self.numPag = self.numPag-1
         if(self.numPag<math.ceil(self.lista.totalDatos/50)):
             self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
@@ -131,8 +131,16 @@ class Pantalla(BoxLayout):
         
 
     def barraTareas(self):
-        self.contenedor.clear_widgets()
+        #self.palabrasBuscadas=[]
+        
+        #print(self.palabrasBuscadas)
+        
         if self.nuevoFiltro or self.cambiarCampo:
+            contTexto =0
+            for filtro in self.filtros:
+                self.palabrasBuscadas.update({self.listaFiltros[contTexto]:filtro.text})
+                contTexto += 1
+            self.contenedor.clear_widgets()
             self.filtrosBotones = []
             contBotones =0
             for posibleFiltro in df:
@@ -151,6 +159,7 @@ class Pantalla(BoxLayout):
             self.contenedor.add_widget(Button(border= (10,10,10,10),text = 'Aceptar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.aceptarCambios))
 
         else:
+            self.contenedor.clear_widgets()
             self.filtros = []
             self.submit = Button(border= (10,10,10,10),text = 'Buscar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.buscar)
             self.submit2 = Button(border= (10,10,10,1),text = 'Nuevo Filtro',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
@@ -158,21 +167,27 @@ class Pantalla(BoxLayout):
             self.contenedor.add_widget(self.submit)
             self.contenedor.add_widget(self.submit2)
             self.contenedor.add_widget(self.submit3)
-            print('----------------')
-            print(self.palabrasBuscadas)
-            # if self.palabrasBuscadas != []:
-            #     for filtro in self.palabrasBuscadas:
-            #         self.filtros.append(TextInput(text='str(filtro)',size_hint=(0.6, 0.05)))           
-            # else:
-            contTexto =0
-            print('-----------------------------')
-            print(self.palabrasBuscadas)
+            # print('----------------')
+            # print(self.palabrasBuscadas)
+            # # if self.palabrasBuscadas != []:
+            # #     for filtro in self.palabrasBuscadas:
+            # #         self.filtros.append(TextInput(text='str(filtro)',size_hint=(0.6, 0.05)))           
+            # # else:
+            
+            # print('-----------------------------')
+            # print(self.palabrasBuscadas)
+            # print(self.listaFiltros)
+            # print('-----------------------------')
+            print('lista filtro:')
             print(self.listaFiltros)
-            print('-----------------------------')
-
+            print('diccionario palabra buscada')
+            print(self.palabrasBuscadas)
             for filtro in self.listaFiltros:
-                self.filtros.append(TextInput(text=str(self.palabrasBuscadas[contTexto]),size_hint=(0.6, 0.05)))
-                contTexto +=1
+                if (self.palabrasBuscadas.get(filtro) != None):
+                    self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint=(0.6, 0.05)))
+                else:
+                    self.filtros.append(TextInput(text='',size_hint=(0.6, 0.05)))
+                #contTexto +=1
             n=0
             self.contenedor.add_widget(Separador())
             
@@ -197,9 +212,7 @@ class Pantalla(BoxLayout):
 
     def buscar(self,obj):
         self.lista.reset()
-        self.palabrasBuscadas=[]
-        for filtro in self.filtros:
-            self.palabrasBuscadas.append(filtro.text)
+        
         self.numPag = 0
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
         self.pagina.clear_widgets()
@@ -212,9 +225,9 @@ class Pantalla(BoxLayout):
                 
     def nuevoInicio(self,obj):
         #self.listaFiltros.append(self.textoDos.text)
-        self.palabrasBuscadas=[]
-        for filtro in self.filtros:
-            self.palabrasBuscadas.append(filtro.text)
+        # self.palabrasBuscadas=[]
+        # for filtro in self.filtros:
+        #     self.palabrasBuscadas.append(filtro.text)
         self.nuevoFiltro = True
         self.barraTareas()
 
@@ -225,7 +238,7 @@ class Pantalla(BoxLayout):
                 if (field == obj.text):
                     self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
                 contFiltro += 1
-            self.palabrasBuscadas.append('')
+            #self.palabrasBuscadas.append('')
             self.barraTareas()
 
         if (self.cambiarCampo):
@@ -363,7 +376,7 @@ class MyWidget(ScrollView):
                         filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
             n+=1
         color = False
-        print(filtro)
+        #print(filtro)
         stop = False
         for row in c.execute(filtro):
             if((cont2 == pag*50 or cont2 > pag*50) and not stop):
