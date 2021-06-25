@@ -10,7 +10,7 @@ Config.set('kivy', 'keyboard_mode', 'system')
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivy.lang import Builder
 from kivy.uix.relativelayout import RelativeLayout
 from pdf2image import convert_from_path
@@ -25,6 +25,11 @@ from kivy.graphics.transformation import Matrix
 from kivy.uix.image import Image 
 from kivy.effects.scroll import ScrollEffect
 from kivy.uix.anchorlayout import AnchorLayout
+import shutil
+import time
+
+import webbrowser
+
 
 #from PIL import Image
 
@@ -36,6 +41,7 @@ for page in pages:
 #from kivymd.uix.textfield import MDTextField
 
 Builder.load_file('design.kv')
+SubiendoArchivo = False
 # print('-------------------------------------')
 # img=Image.open('out.png')
 # img.show()
@@ -67,8 +73,10 @@ class Pantalla(BoxLayout):
         self.filtrosOpcion = []
         self.filtros = []
         self.campos = []
+        self.nombres = list(map(lambda x: x[0], c.execute('select * from CV').description))
         contCampos=0
-        for selectField in df:
+        for selectField in self.nombres:
+            print(selectField)
             if(contCampos<3):
                 self.camposOpcion.append(True)
                 self.campos.append(str(selectField))
@@ -143,7 +151,7 @@ class Pantalla(BoxLayout):
             self.contenedor.clear_widgets()
             self.filtrosBotones = []
             contBotones =0
-            for posibleFiltro in df:
+            for posibleFiltro in self.nombres:
                 if(self.cambiarCampo):
                     self.newBoton= Button(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 if(self.nuevoFiltro):
@@ -161,12 +169,12 @@ class Pantalla(BoxLayout):
         else:
             self.contenedor.clear_widgets()
             self.filtros = []
-            self.submit = Button(border= (10,10,10,10),text = 'Buscar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.buscar)
-            self.submit2 = Button(border= (10,10,10,1),text = 'Nuevo Filtro',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
-            self.submit3 = Button(border= (10,10,10,1),text = 'Cambiar Campos',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoCampo)
-            self.contenedor.add_widget(self.submit)
-            self.contenedor.add_widget(self.submit2)
+            self.submit = Button(border= (10,10,10,10),text = 'Buscar',background_color =(0.3, 0.59, 0.1,1),size_hint=(1, 0.05),on_press=self.buscar)
+            self.submit2 = Button(border= (10,10,10,1),text = 'Filtros',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
+            self.submit3 = Button(border= (10,10,10,1),text = 'Columnas',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoCampo)
+            
             self.contenedor.add_widget(self.submit3)
+            self.contenedor.add_widget(self.submit2)
             # print('----------------')
             # print(self.palabrasBuscadas)
             # # if self.palabrasBuscadas != []:
@@ -189,19 +197,22 @@ class Pantalla(BoxLayout):
                     self.filtros.append(TextInput(text='',size_hint=(0.6, 0.05)))
                 #contTexto +=1
             n=0
-            self.contenedor.add_widget(Separador())
+            self.contenedor.add_widget(Separador2())
             
             for filtro in self.filtros:
                 
                 self.contenedor.add_widget(tituloFiltro(texto=self.listaFiltros[n]))
                 self.contenedor.add_widget(self.filtros[n])
                 n+=1
+            if n > 0:
+                self.contenedor.add_widget(Separador())
+                self.contenedor.add_widget(self.submit)
            
     def cambiarColumnas(self):
         self.lista.reset()
         self.campos=[]
         contColum = 0
-        for field in df:
+        for field in self.nombres:
             if(self.camposOpcion[contColum]):
                 self.campos.append(str(field))
             contColum += 1
@@ -234,7 +245,7 @@ class Pantalla(BoxLayout):
     def nuevoFinal(self,obj):
         if (self.nuevoFiltro):
             contFiltro = 0
-            for field in df:
+            for field in self.nombres:
                 if (field == obj.text):
                     self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
                 contFiltro += 1
@@ -243,7 +254,7 @@ class Pantalla(BoxLayout):
 
         if (self.cambiarCampo):
             contTitulo = 0
-            for field in df:
+            for field in self.nombres:
                 if(field == obj.text):
                     self.camposOpcion[contTitulo] = not self.camposOpcion[contTitulo]
                 contTitulo += 1 
@@ -298,40 +309,40 @@ class ListaBase(BoxLayout):
     def reset(self):
        self.clear_widgets()
 
-class Zoom(ScatterLayout):
+# class Zoom(ScatterLayout):
 
-    def on_touch_down(self, touch):
-        x, y = touch.x, touch.y
-        self.prev_x = touch.x
-        self.prev_y = touch.y
-        self.add_widget(Image(source='out.png'))
+#     def on_touch_down(self, touch):
+#         x, y = touch.x, touch.y
+#         self.prev_x = touch.x
+#         self.prev_y = touch.y
+#         self.add_widget(Image(source='out.png'))
 
-        if touch.is_mouse_scrolling:
-            if touch.button == 'scrolldown':
-                print('down')
-                ## zoom in
-                if self.scale < 10:
-                    self.scale = self.scale * 1.1
+#         if touch.is_mouse_scrolling:
+#             if touch.button == 'scrolldown':
+#                 print('down')
+#                 ## zoom in
+#                 if self.scale < 10:
+#                     self.scale = self.scale * 1.1
 
-            elif touch.button == 'scrollup':
-                print('up')  ## zoom out
-                if self.scale > 1:
-                    self.scale = self.scale * 0.9
+#             elif touch.button == 'scrollup':
+#                 print('up')  ## zoom out
+#                 if self.scale > 1:
+#                     self.scale = self.scale * 0.9
 
-        # if the touch isn't on the widget we do nothing
-        if not self.do_collide_after_children:
-            if not self.collide_point(x, y):
-                return False
+#         # if the touch isn't on the widget we do nothing
+#         if not self.do_collide_after_children:
+#             if not self.collide_point(x, y):
+#                 return False
 
-        if 'multitouch_sim' in touch.profile:
-            touch.multitouch_sim = True
-        # grab the touch so we get all it later move events for sure
-        self._bring_to_front(touch)
-        touch.grab(self)
-        self._touches.append(touch)
-        self._last_touch_pos[touch] = touch.pos
+#         if 'multitouch_sim' in touch.profile:
+#             touch.multitouch_sim = True
+#         # grab the touch so we get all it later move events for sure
+#         self._bring_to_front(touch)
+#         touch.grab(self)
+#         self._touches.append(touch)
+#         self._last_touch_pos[touch] = touch.pos
 
-        return True
+#         return True
 
 class MyWidget(ScrollView):
     end = BooleanProperty()
@@ -339,25 +350,27 @@ class MyWidget(ScrollView):
         super(MyWidget, self).__init__()
         self.build(entrada =entrada,imagen=True,pag=0)
 
+
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
-        #self.principal=ScrollView(effect_cls= ScrollEffect,do_scroll_y= True,size_hint=(1, 1))
-        #self.end = endRow
+
+
         self.contenedor=Barra2(size_hint_y= None)
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
+        PDF = (False,0)
         color = True
         cont = 0
         cont2 = 0
-        # if(endRow):
-        #     self.contenedor.add_widget(campoTitulo(''))
-        # else:
-        #     self.contenedor.add_widget(campoTitulo(entrada))
-        # filtro = "SELECT "+str(entrada)+" FROM CV"
+        
         filtro = "SELECT "
+        n = 0
         for selectField in entrada:
             filtro += "`" + str(selectField) + "`"
+            if (selectField == 'PDF'):
+                PDF = (True,n)
             if(selectField != entrada[len(entrada)-1]):
                 filtro += ", "
+            n += 1
         filtro += " "
 
         filtro +=" FROM CV"
@@ -369,25 +382,30 @@ class MyWidget(ScrollView):
                     filtro +=" WHERE "
 
                 for palabra in elemento.text.split():
+                   # palabra2 = normalize(palabra)
                     if primero:
                         primero = False
-                        filtro +="`" + str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
+                        filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
+                        
                     else:
                         filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
             n+=1
         color = False
-        #print(filtro)
+        
         stop = False
         for row in c.execute(filtro):
             if((cont2 == pag*50 or cont2 > pag*50) and not stop):
                 self.filas.append(Fila())
+                columnas = 0
                 for x in row:
-                    # if(endRow):
-                    #     campo = campoBD2(color)
-                    #     self.filas[len(self.filas)-1].add_widget(campo)
-                    # else:
-                    #     self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
-                    self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                    if PDF[0] and columnas == PDF[1]:
+                        if x == None:
+                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,True,cont))
+                        else:
+                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,False,cont,str(x)))
+                    else:
+                        self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                    columnas += 1
                 color = not color
                                     
                 cont += 1
@@ -400,13 +418,69 @@ class MyWidget(ScrollView):
         self.totalDatos = cont2
         for row in self.filas:
             self.contenedor.add_widget(row)
-        # for i in range(50):
-        #     self.contenedor.add_widget(Button(size_hint_y= None))
+            
         self.add_widget(self.contenedor)
-        # self.add_widget(self.principal)
+
+    def insertPdf(self,fileName,idNum,pag,filtros=[],busqueda=[],imagen=False):
+        cont = 0
+        cont2 = 0
+        
+        filtro = "SELECT * FROM CV"
+        n=0
+        primero=True
+        for elemento in busqueda:
+            if elemento.text.split() != []:
+                if primero:
+                    filtro +=" WHERE "
+
+                for palabra in elemento.text.split():
+                    #palabra2 = normalize(palabra)
+                    if primero:
+                        primero = False
+                        filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
+                        
+                    else:
+                        filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
+            n+=1
+       
+        palabras = []
+        stop = False
+        for row in c.execute(filtro):
+            if((cont2 == pag*50 or cont2 > pag*50) and not stop):
+                if cont == idNum:
+                    for x in row:
+                        print('//////////////'+str(x))
+                        palabras.append(str(x))            
+                cont += 1
+                if cont == 50:
+                    stop = True
+            else:
+                pass
+            cont2 += 1
+        n=0
+        primero=True
+        filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE "
+        print(list(map(lambda x: x[0], c.execute('select * from CV').description)))
+        print(palabras)
+        for nombre in list(map(lambda x: x[0], c.execute('select * from CV').description)):
+
+            if primero:
+                primero = False
+                if(str(palabras[n])!='None'):
+                    filtro +="`" + str(nombre)+"` = '" + str(palabras[n])+"' "
+
+            else:
+                if(str(palabras[n])!='None'):
+                    filtro +=" and `"+str(nombre)+"` = '" + str(palabras[n])+"' "
+            n+=1
+        print(filtro)
+        c.execute(filtro)
+        #c.execute("UPDATE CV SET PDF = '2018' WHERE `Nombre` lIKE '%maría%' ")
+        miConexion.commit()
 
     def reset(self):
        self.clear_widgets()
+
 
 class campoTitulo(BoxLayout):
     g = StringProperty()
@@ -421,6 +495,9 @@ class tituloFiltro(BoxLayout):
         super(tituloFiltro, self).__init__()
         self.g = texto
         self.filtro =filtro
+
+class Separador2(BoxLayout):
+    pass
 
 class Separador(BoxLayout):
     pass
@@ -447,18 +524,74 @@ class campoBD1(BoxLayout):
 
 class campoBD2(BoxLayout):
     color = BooleanProperty()
-    def __init__(self,colorCampo):
+    pdf = BooleanProperty()
+    ID = NumericProperty()
+    # g = StringProperty()
+    def __init__(self,colorCampo,pdf,idNum,path=''):
         super(campoBD2, self).__init__()
-        self.color=colorCampo
+        self.pdf = pdf
+        self.color = colorCampo
+        self.ID = idNum
+        self.g = path
+      
+    def agregarPDF(self):
+        if (aplicacion.agregar):
+            aplicacion.archivo = self.ID
+            aplicacion.SubiendoArchivo = True
+            #self.remove_widget(self.ids.boton)
+            self.clear_widgets()
+            self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
+            aplicacion.agregar=False
+        print('listo')
+
+    def verPDF(self):
+        path = self.g
+        webbrowser.open_new(path)
+
 
 class myApp(App):
     title = 'Plataforma'
+
     def build(self):
-        return Pantalla()
+        Window.bind(on_dropfile=self._on_file_drop)
+        self.SubiendoArchivo = False
+        self.pantalla = Pantalla()
+        self.archivo = ''
+        self.nombreArchivo=''
+        self.agregar=True
+        return self.pantalla
+
+    def _on_file_drop(self, window, file_path):
+        print(self.SubiendoArchivo)
+        if self.SubiendoArchivo:
+            #pathFile = file_path
+            self.agregar=True
+            self.nombreArchivo = "./pdf/" + str(time.time()) + ".pdf"
+            self.SubiendoArchivo = False
+            shutil.copy(file_path,self.nombreArchivo)
+            # self.pantalla.lista.reset()
+            self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+            self.pantalla.lista.reset()
+            self.pantalla.lista.build(entrada=self.pantalla.campos,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+            print(file_path)
+
     def on_pause(self):
         return True
+
     def on_resume(self):
         pass
+
+# def normalize(s):
+#     replacements = (
+#         ("á", "a"),
+#         ("é", "e"),
+#         ("í", "i"),
+#         ("ó", "o"),
+#         ("ú", "u"),
+#     )
+#     for a, b in replacements:
+#         s = s.replace(a, b).replace(a.upper(), b.upper())
+#     return s
     
 
 if __name__ == '__main__':
@@ -468,12 +601,18 @@ if __name__ == '__main__':
 
     xls = pd.ExcelFile(path)
     miConexion = sqlite3.connect('base')
-    c = miConexion.cursor()
-    df = pd.read_excel(path)
-
-    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
     
-    myApp().run()
+    df = pd.read_excel(path)
+    
+    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
+
+    c = miConexion.cursor()
+    c.execute('ALTER TABLE CV ADD PDF TEXT')
+    pathFile = ''
+    
+    SubiendoArchivo = False
+    aplicacion = myApp()
+    aplicacion.run()
 
     c.close
     miConexion.close

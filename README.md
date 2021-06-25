@@ -6,14 +6,16 @@ Parte 2 (listas y filtros)
     -Arreglar multilinea
     -Se crea una base por cada vez que se ejecuta el programa
     -Mejorar nombres de variables
-    -Abrir imagenes según pdf (incompleto, no se acomoda bien)
     -ignorar tildes en el filtrado
     -Hacer que la barra de herramientas se pueda ocultar
     -Ajustar tamaño de campos (alto y ancho)
-    -Mejorar diseño de cambio de página
     -Si el campo es un numero real, se deberia escribir sin el .0
     -Ajustar la caja al texto (o solución aceptable)
     -Si el campo funciona con alguna clasificación, se debe tomar en cuanta al mostrar los campos
     -Considerar cambiar campo opción por diccionario
     -Agregar scroll en la barra de tarea    
     -Optimizar filtrado, solo filtrar si es el filtro es diferente
+    -Revisar que el archivo sea pdf (se podría crear una lista de posibles formatos)
+    -Al editar campos, si se tienen filtros, se aplican aún sin tocar la opción de buscar
+    -Agregar más Opciones de filtrado
+    -Hacer la aplicación más amigable y facil de manejar

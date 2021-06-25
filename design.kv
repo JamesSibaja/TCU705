@@ -42,10 +42,17 @@
         Rectangle:
             size: self.size
             pos: self.pos
-    Label:
-        bold: True
-        color: 1,1,1,1
 
+<Separador2>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint: (1, 0.03) 
+    canvas:
+        Color:
+            rgb: (0, 0.30, 0.40)
+        Rectangle:
+            size: self.size
+            pos: self.pos
     
 <campoBD1>:
     orientation: 'vertical'
@@ -69,27 +76,34 @@
 
 <campoBD2>:
     orientation: 'vertical'
-    size_hint: (0.3,1)
+    size_hint: (1,1)
+    canvas:
+        Color:
+            rgb: (0.83,0.83,0.9) if root.color else (0.9,0.9,0.95)
+        Rectangle:
+            pos: self.pos
+            size: self.size
     AnchorLayout:
-        
-        canvas.before:
+        id:an
+        canvas:
             Color:
                 rgb: (0.83,0.83,0.9) if root.color else (0.9,0.9,0.95)
             Rectangle:
                 pos: self.pos
                 size: self.size
-        size: self.parent.size
+        size: self.size
         anchor_x: 'center'
         anchor_y: 'center'
 
         Button:
-            text: 'ver'
-            size_hint: (0.9, 0.6)
-            background_color: (0.2,0.3,0.9, 1)
+            id: boton
+            text: 'Agregar' if root.pdf else 'ver'
+            size_hint: (0.75, 0.5)
+            background_color: (0.15,0.25,0.8,1)
 
-            background_normal: 'normal.png'
             anchor_x: 'center'
             anchor_y: 'center'
+            on_press: root.agregarPDF() if root.pdf else root.verPDF()
 
 
 
@@ -98,7 +112,7 @@
     do_scroll_y: True
     bar_width: 10
     bar_color: 0.5, 0.5, 0.5, 0.85   
-    bar_inactive_color:  0.5, 0.5, 0.5, 0.5 
+    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
     scroll_type:  ['bars']
     size_hint: (1,0.88)
 
