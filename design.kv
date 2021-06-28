@@ -1,5 +1,8 @@
 #:import ScrollEffect  kivy.effects.scroll.ScrollEffect
 #:import Button kivy.uix.button.Button
+#:import Window kivy.core.window.Window
+#:import ceil math.ceil
+
 <Zoom>:
     # each time a picture is created, the image can delay the loading
     # as soon as the image is loaded, ensure that the center is changed
@@ -54,6 +57,15 @@
             size: self.size
             pos: self.pos
     
+<BotonOpcion>:
+    size_hint_y: None
+    height: 30 * int(ceil((len(root.text)* 58) / Window.size[0]))
+    #size_hint:(1, (30/Window.size[1]) * int(ceil((len(root.text)* 58) / Window.size[0])))
+    text_size:self.size
+    padding: (10,0)
+    halign: 'center'
+    valign:'middle'
+
 <campoBD1>:
     orientation: 'vertical'
     padding: -2
@@ -105,16 +117,26 @@
             anchor_y: 'center'
             on_press: root.agregarPDF() if root.pdf else root.verPDF()
 
-
-
-<MyWidget>:
+<Divisor>:
+    rgb:(0,0,0)
+    size_hint: (1, 1)
     effect_cls: ScrollEffect
     do_scroll_y: True
     bar_width: 10
     bar_color: 0.5, 0.5, 0.5, 0.85   
     bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
     scroll_type:  ['bars']
+
+<MyWidget>:
+    rgb:(0,0,0)
     size_hint: (1,0.88)
+    effect_cls: ScrollEffect
+    do_scroll_y: True
+    bar_width: 10
+    bar_color: 0.5, 0.5, 0.5, 0.85   
+    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
+    scroll_type:  ['bars']
+    
 
 <Pantalla>:
     canvas:
@@ -177,7 +199,8 @@
         #     anchor_y: 'center'
 
 <Barra>:
-    size_hint: (1, 1)
+    size_hint_y: None
+    minimum_height: self.height
     padding: 10
     canvas:
         Color:
@@ -196,16 +219,6 @@
             size: self.size
             pos: self.pos
 
-<Divisor>:
-    size_hint: (0.25, 1)
-    padding: (0,0,0,0)
-    canvas:
-        Color:
-            rgb: (0.2, 0.2, 0.2)
-        Rectangle:
-            size: self.size
-            pos: self.pos
-
 <Contenedor>:
     size_hint: (0.3, 1)
     padding: 10
@@ -215,3 +228,13 @@
         Rectangle:
             size: self.size
             pos: self.pos
+
+<MenuInicial>:
+    canvas:
+        Color:
+            rgb: (1, 1, 1)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    
+

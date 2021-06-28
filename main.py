@@ -9,6 +9,7 @@ Config.set('kivy', 'keyboard_mode', 'system')
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivy.lang import Builder
@@ -56,14 +57,35 @@ class Barra(StackLayout):
 class Barra2(StackLayout):
     pass
 
+class MenuInicial(FloatLayout):
+    # def __init__(self):
+    #     super(MenuInicial, self).__init__()
+    pass 
+   
+
+class Cuadro(BoxLayout):
+    pass
+
 class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
+        self.menu = MenuInicial()
+        self.menu.add_widget( Button(text='Mis proyectos', size_hint=(.3, .1),
+                pos_hint={'x':.15, 'y':.2},on_press=self.build))
+        self.menu.add_widget( Button(text='Nuevo proyecto', size_hint=(.3, .1),
+                pos_hint={'x':.55, 'y':.2},on_press=self.build))
+        self.menu.add_widget(Image(source='logo.png', size_hint=(1, .6),
+                pos_hint={'x':0, 'y':0.35}))
+        self.add_widget(self.menu)
        # picture = Picture(source='out.png')
        # self.add_widget(picture)
         # img = Zoom()
         # self.add_widget(img)
+
+    def build(self,obj):
+        self.clear_widgets()
         self.divisor=Divisor()
+        self.contenedorBarra = BoxLayout(size_hint=(0.25,1),orientation= 'vertical')
         self.numPag = 0
         self.contenedor = Barra()  
         self.listaFiltros =[]
@@ -97,14 +119,20 @@ class Pantalla(BoxLayout):
         self.palabrasBuscadas={}
         self.nuevoFiltro = False
         self.cambiarCampo = False
-        self.barraTareas()
+        #self.contenedor
+        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.divisor.add_widget(self.contenedor)
-        
-        self.add_widget(self.divisor)
+        self.contenedorBarra.add_widget(self.divisor)
+        self.add_widget(self.contenedorBarra)
+
+        #self.divisor.contenedor=Barra2(size_hint_y= None)
+
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
         self.add_widget(self.contenedorLista)
+
+        self.barraTareas()
         #self.add_widget(self.principal)
 
     def siguientePagina(self,obj):
@@ -136,7 +164,7 @@ class Pantalla(BoxLayout):
         self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
-        
+       
 
     def barraTareas(self):
         #self.palabrasBuscadas=[]
@@ -153,25 +181,25 @@ class Pantalla(BoxLayout):
             contBotones =0
             for posibleFiltro in self.nombres:
                 if(self.cambiarCampo):
-                    self.newBoton= Button(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
+                    self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 if(self.nuevoFiltro):
-                    self.newBoton= Button(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
+                    self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 
-                self.newBoton.bind(text_size=self.newBoton.setter('height'))
+                #self.newBoton.bind(text_size=self.newBoton.setter('height'))
                 self.filtrosBotones.append(self.newBoton)
                 contBotones +=1
             n=0
             for botonFiltro in self.filtrosBotones:
                 self.contenedor.add_widget(self.filtrosBotones[n])
                 n+=1
-            self.contenedor.add_widget(Button(border= (10,10,10,10),text = 'Aceptar',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.aceptarCambios))
+            self.contenedor.add_widget(BotonOpcion(border= (10,10,10,10),text = 'Aceptar',background_color =(0, 0.59, 0.81,1),on_press=self.aceptarCambios))
 
         else:
             self.contenedor.clear_widgets()
             self.filtros = []
-            self.submit = Button(border= (10,10,10,10),text = 'Buscar',background_color =(0.3, 0.59, 0.1,1),size_hint=(1, 0.05),on_press=self.buscar)
-            self.submit2 = Button(border= (10,10,10,1),text = 'Filtros',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoInicio)
-            self.submit3 = Button(border= (10,10,10,1),text = 'Columnas',background_color =(0, 0.59, 0.81,1),size_hint=(1, 0.05),on_press=self.nuevoCampo)
+            self.submit = BotonOpcion(text = 'Buscar',background_color =(0.3, 0.59, 0.1,1),on_press=self.buscar)
+            self.submit2 = BotonOpcion(text = 'Filtros',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoInicio)
+            self.submit3 = BotonOpcion(text = 'Columnas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoCampo)
             
             self.contenedor.add_widget(self.submit3)
             self.contenedor.add_widget(self.submit2)
@@ -277,6 +305,7 @@ class Pantalla(BoxLayout):
 
     def nuevoCampo(self,obj):
         self.cambiarCampo = True
+        print(Window.size[0])
         self.barraTareas()
 
 
@@ -296,53 +325,18 @@ class Page(PageLayout):
         self.add_widget(self.lista2) 
         self.add_widget(self.lista3) 
 
-class ListaBase(BoxLayout):
-    def __init__(self,entrada):
-        super(ListaBase, self).__init__()
-        self.build(entrada =entrada,imagen=True)
+# class ListaBase(BoxLayout):
+#     def __init__(self,entrada):
+#         super(ListaBase, self).__init__()
+#         self.build(entrada =entrada,imagen=True)
 
-    def build(self,entrada,filtros=[],busqueda=[],imagen=False):
-        # for row in entrada:
-        #     self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
-        # self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
-        self.add_widget(MyWidget(entrada=entrada,filtros=filtros,busqueda=busqueda))
-    def reset(self):
-       self.clear_widgets()
-
-# class Zoom(ScatterLayout):
-
-#     def on_touch_down(self, touch):
-#         x, y = touch.x, touch.y
-#         self.prev_x = touch.x
-#         self.prev_y = touch.y
-#         self.add_widget(Image(source='out.png'))
-
-#         if touch.is_mouse_scrolling:
-#             if touch.button == 'scrolldown':
-#                 print('down')
-#                 ## zoom in
-#                 if self.scale < 10:
-#                     self.scale = self.scale * 1.1
-
-#             elif touch.button == 'scrollup':
-#                 print('up')  ## zoom out
-#                 if self.scale > 1:
-#                     self.scale = self.scale * 0.9
-
-#         # if the touch isn't on the widget we do nothing
-#         if not self.do_collide_after_children:
-#             if not self.collide_point(x, y):
-#                 return False
-
-#         if 'multitouch_sim' in touch.profile:
-#             touch.multitouch_sim = True
-#         # grab the touch so we get all it later move events for sure
-#         self._bring_to_front(touch)
-#         touch.grab(self)
-#         self._touches.append(touch)
-#         self._last_touch_pos[touch] = touch.pos
-
-#         return True
+#     def build(self,entrada,filtros=[],busqueda=[],imagen=False):
+#         # for row in entrada:
+#         #     self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
+#         # self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
+#         self.add_widget(MyWidget(entrada=entrada,filtros=filtros,busqueda=busqueda))
+#     def reset(self):
+#        self.clear_widgets()
 
 class MyWidget(ScrollView):
     end = BooleanProperty()
@@ -354,7 +348,7 @@ class MyWidget(ScrollView):
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
 
 
-        self.contenedor=Barra2(size_hint_y= None)
+        self.contenedor=Barra2()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
         PDF = (False,0)
@@ -499,7 +493,7 @@ class tituloFiltro(BoxLayout):
 class Separador2(BoxLayout):
     pass
 
-class Separador(BoxLayout):
+class Separador(ScrollView):
     pass
 
 class Divisor(BoxLayout):
@@ -512,6 +506,12 @@ class Fila2(BoxLayout):
     pass
 
 class Fila3(BoxLayout):
+    pass
+
+class BotonOpcion(Button):
+    pass
+
+class BotonOpcion2(Button):
     pass
 
 class campoBD1(BoxLayout):
@@ -549,6 +549,8 @@ class campoBD2(BoxLayout):
         webbrowser.open_new(path)
 
 
+
+
 class myApp(App):
     title = 'Plataforma'
 
@@ -556,10 +558,12 @@ class myApp(App):
         Window.bind(on_dropfile=self._on_file_drop)
         self.SubiendoArchivo = False
         self.pantalla = Pantalla()
+        #self.principal = Principal()
         self.archivo = ''
         self.nombreArchivo=''
         self.agregar=True
         return self.pantalla
+        #return self.principal
 
     def _on_file_drop(self, window, file_path):
         print(self.SubiendoArchivo)
