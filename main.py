@@ -34,11 +34,11 @@ import webbrowser
 
 #from PIL import Image
 
-pages = convert_from_path('Programa.pdf', 500)
-cont = 0
-for page in pages:
-    page.save('out'+ str(cont) +'.png', 'PNG')
-    cont +=1
+# pages = convert_from_path('Programa.pdf', 500)
+# cont = 0
+# for page in pages:
+#     page.save('out'+ str(cont) +'.png', 'PNG')
+#     cont +=1
 #from kivymd.uix.textfield import MDTextField
 
 Builder.load_file('design.kv')
@@ -84,7 +84,7 @@ class Pantalla(BoxLayout):
 
     def build(self,obj):
         self.clear_widgets()
-        self.divisor=Divisor()
+        self.divisor=BoxLayout()
         self.contenedorBarra = BoxLayout(size_hint=(0.25,1),orientation= 'vertical')
         self.numPag = 0
         self.contenedor = Barra()  
