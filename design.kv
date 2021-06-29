@@ -59,7 +59,7 @@
     
 <BotonOpcion>:
     size_hint_y: None
-    height: 30 * int(ceil((len(root.text)* 58) / Window.size[0]))
+    height: 30 * int(ceil((len(root.text)* 50) / Window.size[0]))
     #size_hint:(1, (30/Window.size[1]) * int(ceil((len(root.text)* 58) / Window.size[0])))
     text_size:self.size
     padding: (10,0)
@@ -199,8 +199,9 @@
         #     anchor_y: 'center'
 
 <Barra>:
-    size_hint_y: None
-    minimum_height: self.height
+    # size_hint_y: None
+    # minimum_height: self.height
+    size_hint:(1,1)
     padding: 10
     canvas:
         Color:
