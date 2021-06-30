@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd	
 
-import tkinter as tk
+import math
 
 class App(tk.Frame):
     def __init__(self, master):
