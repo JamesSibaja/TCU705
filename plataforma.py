@@ -56,7 +56,7 @@ class campoBD(BoxLayout):
 
 
 class myApp(App):
-    title = 'Plataforma'
+    title = 'Plataforma'op
     def build(self):
         return MyWidget(4)
     def on_pause(self):
