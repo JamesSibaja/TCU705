@@ -2,7 +2,6 @@ import sqlite3
 import pandas as pd	
 
 
-
 class App(tk.Frame):
     def __init__(self, master):
         super().__init__(master)
