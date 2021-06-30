@@ -8,7 +8,7 @@ class App(tk.Frame):
         self.pack()
 
         self.entrythingy = tk.Entry()
-        self.entrythingy.pack()
+        self.entrythingy.pack()james
 
         # Create the application variable.
         self.contents = tk.StringVar()
