@@ -6,7 +6,6 @@ la UCR. La aplicación consiste en una plataforma con interfaz gráfica que perm
 y segura de bases de datos.
 '''
 
-
 import sqlite3
 import pandas as pd
 from pdf2image import convert_from_path
@@ -39,14 +38,16 @@ Builder.load_file('design.kv')
 SubiendoArchivo = False
 
 '''
+================
 Widget principal
 ================
 Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la aplicación
 '''
-
-class DatabaseGUI(BoxLayout): #Widget principal
+#Widget principal
+class DatabaseGUI(BoxLayout): 
     def __init__(self):
         super(DatabaseGUI, self).__init__()
+        #Aquí se define el menú inicial
         self.menu = MenuInicial()
         self.menu.add_widget( Button(text='Mis proyectos', size_hint=(.3, .1),
                 pos_hint={'x':.15, 'y':.2},on_press=self.build))
@@ -56,12 +57,13 @@ class DatabaseGUI(BoxLayout): #Widget principal
                 pos_hint={'x':0, 'y':0.35}))
         self.add_widget(self.menu)
 
+    #Constructor de la ventana principal
     def build(self,obj):
         self.clear_widgets()
         self.divisor=BoxLayout()
         self.contenedorBarra = BoxLayout(size_hint=(0.25,1),orientation= 'vertical')
         self.numPag = 0
-        self.contenedor = Barra()  
+        self.contenedor = Toolbar()  
         self.listaFiltros =[]
         self.filaTitulo = Fila2()
         self.pagina = Fila2()
@@ -79,12 +81,12 @@ class DatabaseGUI(BoxLayout): #Widget principal
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = MyWidget(entrada=self.campos,pag = self.numPag)
-        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        self.lista = DataViewer(entrada=self.campos,pag = self.numPag)
+        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(orientation= 'vertical')
         for selectField in self.campos:
-            self.filaTitulo.add_widget(campoTitulo(selectField))
+            self.filaTitulo.add_widget(TitleField(selectField))
         self.palabrasBuscadas={}
         self.nuevoFiltro = False
         self.cambiarCampo = False
@@ -96,7 +98,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
         self.add_widget(self.contenedorLista)
-        self.barraTareas()
+        self.toolbarBuilder()
 
     def siguientePagina(self,obj):
         self.lista.reset()
@@ -105,7 +107,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
         self.pagina.clear_widgets()
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
-        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
 
@@ -118,11 +120,12 @@ class DatabaseGUI(BoxLayout): #Widget principal
         self.pagina.clear_widgets()
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
-        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
-      
-    def barraTareas(self):   
+    
+    #Constructor de la barra de herramientas
+    def toolbarBuilder(self):   
         if self.nuevoFiltro or self.cambiarCampo:
             contTexto =0
             for filtro in self.filtros:
@@ -135,7 +138,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
                 if(self.cambiarCampo):
                     self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 if(self.nuevoFiltro):
-                    self.newBoton= BotonOpcion(text = str(posibleFiltro))
+                    self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 self.filtrosBotones.append(self.newBoton)
                 contBotones +=1
             n=0
@@ -163,7 +166,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
             
             for filtro in self.filtros:
                 
-                self.contenedor.add_widget(tituloFiltro(texto=self.listaFiltros[n]))
+                self.contenedor.add_widget(TitleFilter(texto=self.listaFiltros[n]))
                 self.contenedor.add_widget(self.filtros[n])
                 n+=1
             if n > 0:
@@ -180,7 +183,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
             contColum += 1
         self.filaTitulo.clear_widgets()
         for selectField in self.campos:
-            self.filaTitulo.add_widget(campoTitulo(selectField))
+            self.filaTitulo.add_widget(TitleField(selectField))
         self.lista.build(entrada=self.campos,filtros= self.listaFiltros,pag=self.numPag,busqueda=self.filtros)       
 
     def buscar(self,obj):
@@ -191,14 +194,14 @@ class DatabaseGUI(BoxLayout): #Widget principal
         self.pagina.clear_widgets()
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
-        
-        self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+       
+        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
                 self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
                 
     def nuevoInicio(self,obj):
         self.nuevoFiltro = True
-        self.barraTareas()
+        self.toolbarBuilder()
 
     def nuevoFinal(self,obj):
         if (self.nuevoFiltro):
@@ -207,7 +210,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
                 if (field == obj.text):
                     self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
                 contFiltro += 1
-            self.barraTareas()
+            self.toolbarBuilder()
 
         if (self.cambiarCampo):
             contTitulo = 0
@@ -216,7 +219,7 @@ class DatabaseGUI(BoxLayout): #Widget principal
                     self.camposOpcion[contTitulo] = not self.camposOpcion[contTitulo]
                 contTitulo += 1 
 
-            self.barraTareas()
+            self.toolbarBuilder()
             
     def aceptarCambios(self,obj):
             if(self.cambiarCampo):
@@ -230,24 +233,31 @@ class DatabaseGUI(BoxLayout): #Widget principal
                     contFiltro += 1
             self.cambiarCampo = False
             self.nuevoFiltro = False
-            self.barraTareas()
+            self.toolbarBuilder()
 
     def nuevoCampo(self,obj):
         self.cambiarCampo = True
-        self.barraTareas()
+        self.toolbarBuilder()
 
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
-class MyWidget(ScrollView):
+'''
+===================
+Widgets secundarios
+===================
+Diferentes widgets que complementan la ventana principal y conforman la interfaz gráfica
+'''    
+#Widget que muestra los datos solicitados de la base de datos
+class DataViewer(ScrollView):
     end = BooleanProperty()
     def __init__(self,entrada,pag=0):
-        super(MyWidget, self).__init__()
+        super(DataViewer, self).__init__()
         self.build(entrada =entrada,imagen=True,pag=0)
 
 
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
-        self.contenedor=Barra2()
+        self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
         PDF = (False,0)
@@ -367,27 +377,23 @@ class MyWidget(ScrollView):
     def reset(self):
        self.clear_widgets()
 
-'''
-Widgets secundarios
-===================
-Diferentes widgets que complementan la ventana principal y conforman la interfaz gráfica
-'''      
-
-
-class campoTitulo(BoxLayout):
+#Widget que define los cuadros con los titulos de columna de las bases de datos
+class TitleField(BoxLayout):
     g = StringProperty()
     def __init__(self,texto):
-        super(campoTitulo, self).__init__()
+        super(TitleField, self).__init__()
         self.g = texto
 
-class tituloFiltro(BoxLayout):
+#Widget que define los cuadros con los titulos de los filtros
+class TitleFilter(BoxLayout):
     g = StringProperty()
     filtro = BooleanProperty()
     def __init__(self,texto,filtro = True):
-        super(tituloFiltro, self).__init__()
+        super(TitleFilter, self).__init__()
         self.g = texto
         self.filtro =filtro
 
+#Separadores y contenedores varios
 class Separador2(BoxLayout):
     pass
 
@@ -443,11 +449,10 @@ class campoBD2(BoxLayout):
         path = self.g
         webbrowser.open_new(path)
 
-
-class Barra(StackLayout):
+class Toolbar(StackLayout):
     pass
 
-class Barra2(StackLayout):
+class DataViewerContainer(StackLayout):
     pass
 
 class MenuInicial(FloatLayout):
@@ -457,6 +462,7 @@ class Cuadro(BoxLayout):
     pass
 
 '''
+====================
 Aplicación principal
 ====================
 Clase que define la aplicación principal
@@ -473,6 +479,7 @@ class DatabaseGUIApp(App): #Aplicación principal
         self.agregar=True
         return self.pantalla
 
+    #Función que se ejecuta al arrastrar un archivo a la ventana
     def _on_file_drop(self, window, file_path):
         if self.SubiendoArchivo:
             self.agregar=True
@@ -500,15 +507,15 @@ if __name__ == '__main__': #Función principal
 
     table = "CV"
     path = "./cv_acosta.xlsx"
-    xls = pd.ExcelFile(path)
+    xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
-    df = pd.read_excel(path)    
-    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
+    df = pd.read_excel(path) #Se lee el documento de excel  
+    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False) #Se pasa el documento de excel a sql
     c = miConexion.cursor()
     c.execute('ALTER TABLE CV ADD PDF TEXT')
     pathFile = ''    
     SubiendoArchivo = False
-    aplicacion = DatabaseGUIApp()
-    aplicacion.run()
+    aplicacion = DatabaseGUIApp() #Se crea un objeto con la aplicación
+    aplicacion.run() #Se ejecuta la aplicación
     c.close
     miConexion.close

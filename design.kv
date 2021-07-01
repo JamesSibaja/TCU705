@@ -2,15 +2,8 @@
 #:import Button kivy.uix.button.Button
 #:import Window kivy.core.window.Window
 #:import ceil math.ceil
-
-<Zoom>:
-    # each time a picture is created, the image can delay the loading
-    # as soon as the image is loaded, ensure that the center is changed
-    # to the center of the screen.
-    allow_stretch: True
-    elevation: 0
        
-<campoTitulo>:
+<TitleField>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
     size_hint:(1,1)
@@ -25,7 +18,7 @@
         bold: True
         color: 1,1,1,1
 
-<tituloFiltro>:
+<TitleFilter>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
     size_hint:  (0.4, 0.05) if root.filtro else (1,1)
@@ -191,16 +184,7 @@
         anchor_x: 'center'
         anchor_y: 'center'
 
-        # Button:
-        #     text: 'Siguiente'
-        #     size_hint: (0.9, 0.6)
-
-        #     anchor_x: 'center'
-        #     anchor_y: 'center'
-
-<Barra>:
-    # size_hint_y: None
-    # minimum_height: self.height
+<Toolbar>:
     size_hint:(1,1)
     padding: 10
     canvas:
@@ -210,7 +194,7 @@
             size: self.size
             pos: self.pos
 
-<Barra2>:
+<DataViewerContainer>:
     size_hint_y: None
     minimum_height: self.height
     canvas:

@@ -19,3 +19,4 @@ Parte 2 (listas y filtros)
     -Al editar campos, si se tienen filtros, se aplican aún sin tocar la opción de buscar
     -Agregar más Opciones de filtrado
     -Hacer la aplicación más amigable y facil de manejar
+    -Si secambia el filtro y se pasa la página se actualiza la busqueda
