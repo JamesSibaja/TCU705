@@ -8,7 +8,7 @@ class App(tk.Frame):
         self.pack()
 
         self.entrythingy = tk.Entry()
-        self.entrythingy.pack()james
+        self.entrythingy.pack()
 
         # Create the application variable.
         self.contents = tk.StringVar()
@@ -56,7 +56,7 @@ class campoBD(BoxLayout):
 
 
 class myApp(App):
-    title = 'Plataforma'op
+    title = 'Plataforma'
     def build(self):
         return MyWidget(4)
     def on_pause(self):
