@@ -70,7 +70,7 @@ class Pantalla(BoxLayout):
     def __init__(self):
         super(Pantalla, self).__init__()
         self.menu = MenuInicial()
-        self.menu.add_widget( Button(text='Mis proyectos', size_hint=(.3, .1),
+        self.menu.add_widget( Button(text='Mis Proyectos', size_hint=(.3, .1),
                 pos_hint={'x':.15, 'y':.2},on_press=self.build))
         self.menu.add_widget( Button(text='Nuevo proyecto', size_hint=(.3, .1),
                 pos_hint={'x':.55, 'y':.2},on_press=self.build))
