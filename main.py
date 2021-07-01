@@ -1,86 +1,60 @@
-import sqlite3
-import pandas as pd	
-from kivy.uix.label import Label
-import math
+'''
+Plataforma para base de datos con interfaz gráfica
+========================
+Esta aplicación fue desarrollada como una colaboración entre la municipalidad de Acosta y el TCU-705 de 
+la UCR. La aplicación consiste en una plataforma con interfaz gráfica que permite la manipulación amigable 
+y segura de bases de datos.
+'''
 
-# config
-from kivy.config import Config
-Config.set('kivy', 'keyboard_mode', 'system')
+
+import sqlite3
+import pandas as pd
+from pdf2image import convert_from_path
+import shutil
+import time
+import webbrowser
+import math
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
-from kivy.properties import StringProperty, BooleanProperty, NumericProperty
-from kivy.lang import Builder
+from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
-from pdf2image import convert_from_path
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-from kivy.uix.stacklayout import StackLayout
-from kivy.uix.pagelayout import PageLayout
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.scatterlayout import ScatterLayout
-from kivy.core.window import Window
-from kivy.graphics.transformation import Matrix
-from kivy.uix.image import Image 
-from kivy.effects.scroll import ScrollEffect
+from kivy.uix.stacklayout import StackLayout
 from kivy.uix.anchorlayout import AnchorLayout
-import shutil
-import time
+from kivy.uix.image import Image 
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
+from kivy.lang import Builder
+from kivy.core.window import Window
 
-import webbrowser
-
-
-#from PIL import Image
-
-# pages = convert_from_path('Programa.pdf', 500)
-# cont = 0
-# for page in pages:
-#     page.save('out'+ str(cont) +'.png', 'PNG')
-#     cont +=1
-#from kivymd.uix.textfield import MDTextField
-
+# config
+from kivy.config import Config
+Config.set('kivy', 'keyboard_mode', 'system')
 Builder.load_file('design.kv')
+
 SubiendoArchivo = False
-# print('-------------------------------------')
-# img=Image.open('out.png')
-# img.show()
-# print(img)
-# print('-------------------------------------')
-class Picture(Scatter):
-    source = StringProperty(None)
 
-class Barra(StackLayout):
-    pass
+'''
+Widget principal
+================
+Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la aplicación
+'''
 
-class Barra2(StackLayout):
-    pass
-
-class MenuInicial(FloatLayout):
-    # def __init__(self):
-    #     super(MenuInicial, self).__init__()
-    pass 
-   
-
-class Cuadro(BoxLayout):
-    pass
-
-class Pantalla(BoxLayout):
+class DatabaseGUI(BoxLayout): #Widget principal
     def __init__(self):
-        super(Pantalla, self).__init__()
+        super(DatabaseGUI, self).__init__()
         self.menu = MenuInicial()
-        self.menu.add_widget( Button(text='Mis Proyectos', size_hint=(.3, .1),
+        self.menu.add_widget( Button(text='Mis proyectos', size_hint=(.3, .1),
                 pos_hint={'x':.15, 'y':.2},on_press=self.build))
         self.menu.add_widget( Button(text='Nuevo proyecto', size_hint=(.3, .1),
                 pos_hint={'x':.55, 'y':.2},on_press=self.build))
         self.menu.add_widget(Image(source='logo.png', size_hint=(1, .6),
                 pos_hint={'x':0, 'y':0.35}))
         self.add_widget(self.menu)
-       # picture = Picture(source='out.png')
-       # self.add_widget(picture)
-        # img = Zoom()
-        # self.add_widget(img)
 
     def build(self,obj):
         self.clear_widgets()
@@ -98,7 +72,6 @@ class Pantalla(BoxLayout):
         self.nombres = list(map(lambda x: x[0], c.execute('select * from CV').description))
         contCampos=0
         for selectField in self.nombres:
-            print(selectField)
             if(contCampos<3):
                 self.camposOpcion.append(True)
                 self.campos.append(str(selectField))
@@ -108,38 +81,25 @@ class Pantalla(BoxLayout):
             contCampos+=1
         self.lista = MyWidget(entrada=self.campos,pag = self.numPag)
         self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
-        #self.pagina.add_widget(BoxLayout(text='Siguiente',on_press=self.nuevaPagina()))
         self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(orientation= 'vertical')
         for selectField in self.campos:
             self.filaTitulo.add_widget(campoTitulo(selectField))
-            
-        
-        #self.principal=ScrollView(do_scroll_y= True,size_hint=(1, None), size=(Window.width, Window.height))
         self.palabrasBuscadas={}
         self.nuevoFiltro = False
         self.cambiarCampo = False
-        #self.contenedor
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.divisor.add_widget(self.contenedor)
         self.contenedorBarra.add_widget(self.divisor)
         self.add_widget(self.contenedorBarra)
-
-        #self.divisor.contenedor=Barra2(size_hint_y= None)
-
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
         self.add_widget(self.contenedorLista)
-
         self.barraTareas()
-        #self.add_widget(self.principal)
 
     def siguientePagina(self,obj):
         self.lista.reset()
-        # self.palabrasBuscadas=[]
-        # for filtro in self.filtros:
-        #     self.palabrasBuscadas.append(filtro.text)
         self.numPag +=1
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.pagina.clear_widgets()
@@ -151,9 +111,6 @@ class Pantalla(BoxLayout):
 
     def anteriorPagina(self,obj):
         self.lista.reset()
-        # self.palabrasBuscadas=[]
-        # for filtro in self.filtros:
-        #     self.palabrasBuscadas.append(filtro.text)
         self.numPag = self.numPag-1
         if(self.numPag<math.ceil(self.lista.totalDatos/50)):
             self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
@@ -164,13 +121,8 @@ class Pantalla(BoxLayout):
         self.pagina.add_widget(tituloFiltro(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
-       
-
-    def barraTareas(self):
-        #self.palabrasBuscadas=[]
-        
-        #print(self.palabrasBuscadas)
-        
+      
+    def barraTareas(self):   
         if self.nuevoFiltro or self.cambiarCampo:
             contTexto =0
             for filtro in self.filtros:
@@ -183,9 +135,7 @@ class Pantalla(BoxLayout):
                 if(self.cambiarCampo):
                     self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 if(self.nuevoFiltro):
-                    self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
-                
-                #self.newBoton.bind(text_size=self.newBoton.setter('height'))
+                    self.newBoton= BotonOpcion(text = str(posibleFiltro))
                 self.filtrosBotones.append(self.newBoton)
                 contBotones +=1
             n=0
@@ -203,27 +153,11 @@ class Pantalla(BoxLayout):
             
             self.contenedor.add_widget(self.submit3)
             self.contenedor.add_widget(self.submit2)
-            # print('----------------')
-            # print(self.palabrasBuscadas)
-            # # if self.palabrasBuscadas != []:
-            # #     for filtro in self.palabrasBuscadas:
-            # #         self.filtros.append(TextInput(text='str(filtro)',size_hint=(0.6, 0.05)))           
-            # # else:
-            
-            # print('-----------------------------')
-            # print(self.palabrasBuscadas)
-            # print(self.listaFiltros)
-            # print('-----------------------------')
-            print('lista filtro:')
-            print(self.listaFiltros)
-            print('diccionario palabra buscada')
-            print(self.palabrasBuscadas)
             for filtro in self.listaFiltros:
                 if (self.palabrasBuscadas.get(filtro) != None):
                     self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint=(0.6, 0.05)))
                 else:
                     self.filtros.append(TextInput(text='',size_hint=(0.6, 0.05)))
-                #contTexto +=1
             n=0
             self.contenedor.add_widget(Separador2())
             
@@ -263,10 +197,6 @@ class Pantalla(BoxLayout):
                 self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
                 
     def nuevoInicio(self,obj):
-        #self.listaFiltros.append(self.textoDos.text)
-        # self.palabrasBuscadas=[]
-        # for filtro in self.filtros:
-        #     self.palabrasBuscadas.append(filtro.text)
         self.nuevoFiltro = True
         self.barraTareas()
 
@@ -277,7 +207,6 @@ class Pantalla(BoxLayout):
                 if (field == obj.text):
                     self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
                 contFiltro += 1
-            #self.palabrasBuscadas.append('')
             self.barraTareas()
 
         if (self.cambiarCampo):
@@ -305,38 +234,10 @@ class Pantalla(BoxLayout):
 
     def nuevoCampo(self,obj):
         self.cambiarCampo = True
-        print(Window.size[0])
         self.barraTareas()
-
 
 def on_enter(instance, value):
     print('User pressed enter in', instance)
-
-class Picture(Image):
-    pass
-
-class Page(PageLayout):
-    def __init__(self):
-        super(Page, self).__init__()
-        self.lista = ListaBase(['Nombre','Telefono','Carrera']) 
-        self.lista2 = ListaBase(['Nombre','Telefono','Carrera']) 
-        self.lista3 = ListaBase(['Nombre','Telefono','Carrera']) 
-        self.add_widget(self.lista) 
-        self.add_widget(self.lista2) 
-        self.add_widget(self.lista3) 
-
-# class ListaBase(BoxLayout):
-#     def __init__(self,entrada):
-#         super(ListaBase, self).__init__()
-#         self.build(entrada =entrada,imagen=True)
-
-#     def build(self,entrada,filtros=[],busqueda=[],imagen=False):
-#         # for row in entrada:
-#         #     self.add_widget(MyWidget(entrada=row,filtros=filtros,busqueda=busqueda))
-#         # self.add_widget(MyWidget(entrada=entrada[0],endRow=True,filtros=filtros,busqueda=busqueda))
-#         self.add_widget(MyWidget(entrada=entrada,filtros=filtros,busqueda=busqueda))
-#     def reset(self):
-#        self.clear_widgets()
 
 class MyWidget(ScrollView):
     end = BooleanProperty()
@@ -346,8 +247,6 @@ class MyWidget(ScrollView):
 
 
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
-
-
         self.contenedor=Barra2()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
@@ -376,7 +275,6 @@ class MyWidget(ScrollView):
                     filtro +=" WHERE "
 
                 for palabra in elemento.text.split():
-                   # palabra2 = normalize(palabra)
                     if primero:
                         primero = False
                         filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
@@ -428,7 +326,6 @@ class MyWidget(ScrollView):
                     filtro +=" WHERE "
 
                 for palabra in elemento.text.split():
-                    #palabra2 = normalize(palabra)
                     if primero:
                         primero = False
                         filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
@@ -443,7 +340,6 @@ class MyWidget(ScrollView):
             if((cont2 == pag*50 or cont2 > pag*50) and not stop):
                 if cont == idNum:
                     for x in row:
-                        print('//////////////'+str(x))
                         palabras.append(str(x))            
                 cont += 1
                 if cont == 50:
@@ -454,8 +350,6 @@ class MyWidget(ScrollView):
         n=0
         primero=True
         filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE "
-        print(list(map(lambda x: x[0], c.execute('select * from CV').description)))
-        print(palabras)
         for nombre in list(map(lambda x: x[0], c.execute('select * from CV').description)):
 
             if primero:
@@ -467,13 +361,17 @@ class MyWidget(ScrollView):
                 if(str(palabras[n])!='None'):
                     filtro +=" and `"+str(nombre)+"` = '" + str(palabras[n])+"' "
             n+=1
-        print(filtro)
         c.execute(filtro)
-        #c.execute("UPDATE CV SET PDF = '2018' WHERE `Nombre` lIKE '%maría%' ")
         miConexion.commit()
 
     def reset(self):
        self.clear_widgets()
+
+'''
+Widgets secundarios
+===================
+Diferentes widgets que complementan la ventana principal y conforman la interfaz gráfica
+'''      
 
 
 class campoTitulo(BoxLayout):
@@ -526,7 +424,6 @@ class campoBD2(BoxLayout):
     color = BooleanProperty()
     pdf = BooleanProperty()
     ID = NumericProperty()
-    # g = StringProperty()
     def __init__(self,colorCampo,pdf,idNum,path=''):
         super(campoBD2, self).__init__()
         self.pdf = pdf
@@ -538,46 +435,53 @@ class campoBD2(BoxLayout):
         if (aplicacion.agregar):
             aplicacion.archivo = self.ID
             aplicacion.SubiendoArchivo = True
-            #self.remove_widget(self.ids.boton)
             self.clear_widgets()
             self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
             aplicacion.agregar=False
-        print('listo')
 
     def verPDF(self):
         path = self.g
         webbrowser.open_new(path)
 
 
+class Barra(StackLayout):
+    pass
 
+class Barra2(StackLayout):
+    pass
 
-class myApp(App):
+class MenuInicial(FloatLayout):
+    pass    
+
+class Cuadro(BoxLayout):
+    pass
+
+'''
+Aplicación principal
+====================
+Clase que define la aplicación principal
+'''
+class DatabaseGUIApp(App): #Aplicación principal
     title = 'Plataforma'
 
     def build(self):
         Window.bind(on_dropfile=self._on_file_drop)
         self.SubiendoArchivo = False
-        self.pantalla = Pantalla()
-        #self.principal = Principal()
+        self.pantalla = DatabaseGUI()
         self.archivo = ''
         self.nombreArchivo=''
         self.agregar=True
         return self.pantalla
-        #return self.principal
 
     def _on_file_drop(self, window, file_path):
-        print(self.SubiendoArchivo)
         if self.SubiendoArchivo:
-            #pathFile = file_path
             self.agregar=True
             self.nombreArchivo = "./pdf/" + str(time.time()) + ".pdf"
             self.SubiendoArchivo = False
             shutil.copy(file_path,self.nombreArchivo)
-            # self.pantalla.lista.reset()
             self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
             self.pantalla.lista.reset()
             self.pantalla.lista.build(entrada=self.pantalla.campos,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
-            print(file_path)
 
     def on_pause(self):
         return True
@@ -585,38 +489,26 @@ class myApp(App):
     def on_resume(self):
         pass
 
-# def normalize(s):
-#     replacements = (
-#         ("á", "a"),
-#         ("é", "e"),
-#         ("í", "i"),
-#         ("ó", "o"),
-#         ("ú", "u"),
-#     )
-#     for a, b in replacements:
-#         s = s.replace(a, b).replace(a.upper(), b.upper())
-#     return s
-    
 
-if __name__ == '__main__':
+'''
+Función principal
+=================
+Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGUIApp
+'''
+
+if __name__ == '__main__': #Función principal
 
     table = "CV"
     path = "./cv_acosta.xlsx"
-
     xls = pd.ExcelFile(path)
-    miConexion = sqlite3.connect('base')
-    
-    df = pd.read_excel(path)
-    
+    miConexion = sqlite3.connect('base')    
+    df = pd.read_excel(path)    
     df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False)
-
     c = miConexion.cursor()
     c.execute('ALTER TABLE CV ADD PDF TEXT')
-    pathFile = ''
-    
+    pathFile = ''    
     SubiendoArchivo = False
-    aplicacion = myApp()
+    aplicacion = DatabaseGUIApp()
     aplicacion.run()
-
     c.close
     miConexion.close
