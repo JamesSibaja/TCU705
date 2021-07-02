@@ -29,6 +29,7 @@ from kivy.uix.image import Image
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivy.lang import Builder
 from kivy.core.window import Window
+from kivy.uix.behaviors import ButtonBehavior
 
 # config
 from kivy.config import Config
@@ -60,10 +61,10 @@ class DatabaseGUI(BoxLayout):
     #Constructor de la ventana principal
     def build(self,obj):
         self.clear_widgets()
-        self.divisor=BoxLayout()
-        self.contenedorBarra = BoxLayout(size_hint=(0.25,1),orientation= 'vertical')
+        #self.divisor=BoxLayout()
+        #self.contenedorBarra = BoxLayout(size_hint=(0.25,1),orientation= 'vertical')
         self.numPag = 0
-        self.contenedor = Toolbar()  
+        self.contenedor = Toolbar()   
         self.listaFiltros =[]
         self.filaTitulo = Fila2()
         self.pagina = Fila2()
@@ -91,9 +92,11 @@ class DatabaseGUI(BoxLayout):
         self.nuevoFiltro = False
         self.cambiarCampo = False
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        self.divisor.add_widget(self.contenedor)
-        self.contenedorBarra.add_widget(self.divisor)
-        self.add_widget(self.contenedorBarra)
+        #self.divisor.add_widget(self.contenedor)
+        #self.contenedorBarra.add_widget(self.divisor)
+        #self.add_widget(self.contenedorBarra)
+        self.add_widget(self.contenedor)
+        self.add_widget(ToolbarShow(on_press=self.toolbarHide))
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
@@ -123,7 +126,15 @@ class DatabaseGUI(BoxLayout):
         self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
-    
+
+    def toolbarHide(self,obj): 
+        self.contenedor.show = not self.contenedor.show
+        if self.contenedor.show:
+            self.toolbarBuilder()
+        else:
+            self.contenedor.clear_widgets()
+            
+
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
         if self.nuevoFiltro or self.cambiarCampo:
@@ -150,7 +161,7 @@ class DatabaseGUI(BoxLayout):
         else:
             self.contenedor.clear_widgets()
             self.filtros = []
-            self.submit = BotonOpcion(text = 'Buscar',background_color =(0.3, 0.59, 0.1,1),on_press=self.buscar)
+            self.submit = BotonOpcion(text = 'Aplicar Filtros',background_color =(0.3, 0.59, 0.1,1),on_press=self.buscar)
             self.submit2 = BotonOpcion(text = 'Filtros',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoInicio)
             self.submit3 = BotonOpcion(text = 'Columnas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoCampo)
             
@@ -158,15 +169,14 @@ class DatabaseGUI(BoxLayout):
             self.contenedor.add_widget(self.submit2)
             for filtro in self.listaFiltros:
                 if (self.palabrasBuscadas.get(filtro) != None):
-                    self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint=(0.6, 0.05)))
+                    self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint=(1, 0.05)))
                 else:
-                    self.filtros.append(TextInput(text='',size_hint=(0.6, 0.05)))
+                    self.filtros.append(TextInput(text='',size_hint=(1, 0.05)))
             n=0
             self.contenedor.add_widget(Separador2())
             
-            for filtro in self.filtros:
-                
-                self.contenedor.add_widget(TitleFilter(texto=self.listaFiltros[n]))
+            for filtro in self.filtros:            
+                self.contenedor.add_widget(TitleFilter(texto=self.listaFiltros[n]+':'))
                 self.contenedor.add_widget(self.filtros[n])
                 n+=1
             if n > 0:
@@ -426,6 +436,9 @@ class campoBD1(BoxLayout):
         self.g = texto
         self.color=colorCampo
 
+class OcultarBarra(FloatLayout):
+    pass
+
 class campoBD2(BoxLayout):
     color = BooleanProperty()
     pdf = BooleanProperty()
@@ -449,8 +462,15 @@ class campoBD2(BoxLayout):
         path = self.g
         webbrowser.open_new(path)
 
-class Toolbar(StackLayout):
-    pass
+class Toolbar(ButtonBehavior,StackLayout):
+    show = BooleanProperty()
+    def __init__(self):
+        super(Toolbar, self).__init__()
+        self.show=True
+
+class ToolbarShow(ButtonBehavior,BoxLayout):
+     def __init__(self,**kwargs):
+        super(ToolbarShow, self).__init__(**kwargs)
 
 class DataViewerContainer(StackLayout):
     pass
@@ -498,6 +518,7 @@ class DatabaseGUIApp(App): #Aplicación principal
 
 
 '''
+=================
 Función principal
 =================
 Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGUIApp
