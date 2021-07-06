@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 '''
 Plataforma para base de datos con interfaz gráfica
 ========================
@@ -263,6 +265,9 @@ class DataViewer(ScrollView):
     end = BooleanProperty()
     def __init__(self,entrada,pag=0):
         super(DataViewer, self).__init__()
+        self.totalDatos = 0
+        for row in c.execute('SELECT * From CV'):
+            self.totalDatos += 1
         self.build(entrada =entrada,imagen=True,pag=0)
 
 
@@ -273,7 +278,6 @@ class DataViewer(ScrollView):
         PDF = (False,0)
         color = True
         cont = 0
-        cont2 = 0
         
         filtro = "SELECT "
         n = 0
@@ -286,7 +290,7 @@ class DataViewer(ScrollView):
             n += 1
         filtro += " "
 
-        filtro +=" FROM CV"
+        filtro +=" FROM CV LIMIT 50 OFFSET " + str(pag*50)
         n=0
         primero=True
         for elemento in busqueda:
@@ -304,30 +308,25 @@ class DataViewer(ScrollView):
             n+=1
         color = False
         
-        stop = False
         for row in c.execute(filtro):
-            if((cont2 == pag*50 or cont2 > pag*50) and not stop):
-                self.filas.append(Fila())
-                columnas = 0
-                for x in row:
-                    if PDF[0] and columnas == PDF[1]:
-                        if x == None:
-                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,True,cont))
-                        else:
-                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,False,cont,str(x)))
-                    else:
-                        self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
-                    columnas += 1
-                color = not color
-                                    
-                cont += 1
-                if cont == 50:
-                    stop = True
-            else:
-                pass
-            cont2 += 1
             
-        self.totalDatos = cont2
+            self.filas.append(Fila())
+            columnas = 0
+            for x in row:
+                if isinstance(x,float):
+                    x=int(x)
+                if PDF[0] and columnas == PDF[1]:
+                    if x == None:
+                        self.filas[len(self.filas)-1].add_widget(campoBD2(color,True,cont))
+                    else:
+                        self.filas[len(self.filas)-1].add_widget(campoBD2(color,False,cont,str(x)))
+                else:
+                    self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                columnas += 1
+            color = not color
+                                
+            cont += 1
+
         for row in self.filas:
             self.contenedor.add_widget(row)
             
@@ -337,7 +336,7 @@ class DataViewer(ScrollView):
         cont = 0
         cont2 = 0
         
-        filtro = "SELECT * FROM CV"
+        filtro = "SELECT * FROM CV LIMIT 50 OFFSET " + str(pag*50)
         n=0
         primero=True
         for elemento in busqueda:
@@ -355,18 +354,12 @@ class DataViewer(ScrollView):
             n+=1
        
         palabras = []
-        stop = False
         for row in c.execute(filtro):
-            if((cont2 == pag*50 or cont2 > pag*50) and not stop):
-                if cont == idNum:
-                    for x in row:
-                        palabras.append(str(x))            
-                cont += 1
-                if cont == 50:
-                    stop = True
-            else:
-                pass
-            cont2 += 1
+            
+            if cont == idNum:
+                for x in row:
+                    palabras.append(str(x))            
+            cont += 1
         n=0
         primero=True
         filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE "

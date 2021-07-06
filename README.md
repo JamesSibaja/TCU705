@@ -7,8 +7,6 @@ Parte 2 (listas y filtros)
     -Se crea una base por cada vez que se ejecuta el programa
     -Mejorar nombres de variables
     -ignorar tildes en el filtrado
-    -Ajustar tamaño de campos (alto y ancho)
-    -Si el campo es un numero real, se deberia escribir sin el .0
     -Ajustar la caja al texto (o solución aceptable)
     -Si el campo funciona con alguna clasificación, se debe tomar en cuanta al mostrar los campos
     -Considerar cambiar campo opción por diccionario
@@ -18,5 +16,5 @@ Parte 2 (listas y filtros)
     -Al editar campos, si se tienen filtros, se aplican aún sin tocar la opción de buscar
     -Agregar más Opciones de filtrado
     -Hacer la aplicación más amigable y facil de manejar
-    -Si secambia el filtro y se pasa la página se actualiza la busqueda
+    -Si se cambia el filtro y se pasa la página se actualiza la busqueda
     -Problemas con el sistema de almacenaje de pdf
