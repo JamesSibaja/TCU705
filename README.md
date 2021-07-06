@@ -7,7 +7,6 @@ Parte 2 (listas y filtros)
     -Se crea una base por cada vez que se ejecuta el programa
     -Mejorar nombres de variables
     -ignorar tildes en el filtrado
-    -Ajustar la caja al texto (o solución aceptable)
     -Si el campo funciona con alguna clasificación, se debe tomar en cuanta al mostrar los campos
     -Considerar cambiar campo opción por diccionario
     -Agregar scroll en la barra de tarea    
@@ -17,4 +16,6 @@ Parte 2 (listas y filtros)
     -Agregar más Opciones de filtrado
     -Hacer la aplicación más amigable y facil de manejar
     -Si se cambia el filtro y se pasa la página se actualiza la busqueda
-    -Problemas con el sistema de almacenaje de pdf
+    -Agregrar opción para cancelar inserción de pdf o cambiar pdf
+    -Fijar un tamaño máximo para boton agregar pdf
+    -Analizar opciones al trabajar base con indices

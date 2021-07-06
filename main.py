@@ -75,16 +75,18 @@ class DatabaseGUI(BoxLayout):
         self.filtros = []
         self.campos = []
         self.nombres = list(map(lambda x: x[0], c.execute('select * from CV').description))
+        index = self.nombres[0]
+        self.nombres.pop(0)
         contCampos=0
         for selectField in self.nombres:
-            if(contCampos<3):
+            if(contCampos < 3 ):
                 self.camposOpcion.append(True)
                 self.campos.append(str(selectField))
             else:
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(entrada=self.campos,pag = self.numPag)
+        self.lista = DataViewer(index=index,entrada=self.campos,pag = self.numPag)
         self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
         self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(orientation= 'vertical')
@@ -263,15 +265,16 @@ Diferentes widgets que complementan la ventana principal y conforman la interfaz
 #Widget que muestra los datos solicitados de la base de datos
 class DataViewer(ScrollView):
     end = BooleanProperty()
-    def __init__(self,entrada,pag=0):
+    def __init__(self,index,entrada,pag=0):
         super(DataViewer, self).__init__()
+        self.index = index
         self.totalDatos = 0
         for row in c.execute('SELECT * From CV'):
             self.totalDatos += 1
         self.build(entrada =entrada,imagen=True,pag=0)
 
-
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
+        aplicacion.agregar = True
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
@@ -279,18 +282,19 @@ class DataViewer(ScrollView):
         color = True
         cont = 0
         
-        filtro = "SELECT "
+        filtro = "SELECT `"+ self.index +"`"
         n = 0
         for selectField in entrada:
+            if (n == 0):
+                filtro += ", "
             filtro += "`" + str(selectField) + "`"
             if (selectField == 'PDF'):
                 PDF = (True,n)
             if(selectField != entrada[len(entrada)-1]):
                 filtro += ", "
             n += 1
-        filtro += " "
-
-        filtro +=" FROM CV LIMIT 50 OFFSET " + str(pag*50)
+            
+        filtro +=" FROM CV"
         n=0
         primero=True
         for elemento in busqueda:
@@ -306,23 +310,35 @@ class DataViewer(ScrollView):
                     else:
                         filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
             n+=1
+        filtro += " LIMIT 50 OFFSET " + str(pag*50)
         color = False
-        
+        data = pd.read_sql_query(filtro, miConexion)
+        data2=pd.unique(data[str(entrada[0])])
+        for diferente in data2:
+            filtro2 = "SELECT COUNT(`"+ str(entrada[0]) +"`) FROM CV WHERE `" + str(entrada[0]) + "` = '"+str(diferente)+"'"
+            for x in c.execute(filtro2):
+                for y in x:
+                    print(y)
         for row in c.execute(filtro):
             
             self.filas.append(Fila())
             columnas = 0
+            index = True 
             for x in row:
-                if isinstance(x,float):
-                    x=int(x)
-                if PDF[0] and columnas == PDF[1]:
-                    if x == None:
-                        self.filas[len(self.filas)-1].add_widget(campoBD2(color,True,cont))
+                if index:
+                    index = False
+                    indexID = str(x)
+                else:    
+                    if isinstance(x,float):
+                        x=int(x)
+                    if PDF[0] and columnas == PDF[1]:
+                        if x == None:
+                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,True,indexID,pag=pag))
+                        else:
+                            self.filas[len(self.filas)-1].add_widget(campoBD2(color,False,indexID,str(x),pag=pag))
                     else:
-                        self.filas[len(self.filas)-1].add_widget(campoBD2(color,False,cont,str(x)))
-                else:
-                    self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
-                columnas += 1
+                        self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),color))
+                    columnas += 1
             color = not color
                                 
             cont += 1
@@ -336,44 +352,45 @@ class DataViewer(ScrollView):
         cont = 0
         cont2 = 0
         
-        filtro = "SELECT * FROM CV LIMIT 50 OFFSET " + str(pag*50)
-        n=0
-        primero=True
-        for elemento in busqueda:
-            if elemento.text.split() != []:
-                if primero:
-                    filtro +=" WHERE "
+        #filtro = "SELECT * FROM CV LIMIT 50 OFFSET " + str(pag*50) + " WHERE " + self.index + " = " + str(idNum)
+        # n=0
+        # primero=True
+        # for elemento in busqueda:
+        #     if elemento.text.split() != []:
+        #         if primero:
+        #             filtro +=" WHERE " + self.index + " LIKE " + str(idNum)
 
-                for palabra in elemento.text.split():
-                    if primero:
-                        primero = False
-                        filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
+        #         for palabra in elemento.text.split():
+        #             if primero:
+        #                 primero = False
+        #                 filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
                         
-                    else:
-                        filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
-            n+=1
+        #             else:
+        #                 filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
+        #     n+=1
        
-        palabras = []
-        for row in c.execute(filtro):
+        # palabras = []
+        # for row in c.execute(filtro):
             
-            if cont == idNum:
-                for x in row:
-                    palabras.append(str(x))            
-            cont += 1
-        n=0
-        primero=True
-        filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE "
-        for nombre in list(map(lambda x: x[0], c.execute('select * from CV').description)):
+        #     if cont == idNum:
+        #         for x in row:
+        #             palabras.append(str(x))            
+        #     cont += 1
+        # n=0
+        # primero=True
+        filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
+        # for nombre in list(map(lambda x: x[0], c.execute('select * from CV').description)):
 
-            if primero:
-                primero = False
-                if(str(palabras[n])!='None'):
-                    filtro +="`" + str(nombre)+"` = '" + str(palabras[n])+"' "
+        #     if primero:
+        #         primero = False
+        #         if(str(palabras[n])!='None'):
+        #             filtro +="`" + str(nombre)+"` = '" + str(palabras[n])+"' "
 
-            else:
-                if(str(palabras[n])!='None'):
-                    filtro +=" and `"+str(nombre)+"` = '" + str(palabras[n])+"' "
-            n+=1
+        #     else:
+        #         if(str(palabras[n])!='None'):
+        #             filtro +=" and `"+str(nombre)+"` = '" + str(palabras[n])+"' "
+        #     n+=1
+        print(filtro)
         c.execute(filtro)
         miConexion.commit()
 
@@ -436,16 +453,19 @@ class campoBD2(BoxLayout):
     color = BooleanProperty()
     pdf = BooleanProperty()
     ID = NumericProperty()
-    def __init__(self,colorCampo,pdf,idNum,path=''):
+    pag = NumericProperty()
+    def __init__(self,colorCampo,pdf,idNum,path='',pag=0):
         super(campoBD2, self).__init__()
         self.pdf = pdf
         self.color = colorCampo
         self.ID = idNum
         self.g = path
+        self.pag = pag
       
     def agregarPDF(self):
         if (aplicacion.agregar):
             aplicacion.archivo = self.ID
+            aplicacion.pag = self.pag
             aplicacion.SubiendoArchivo = True
             self.clear_widgets()
             self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
@@ -490,6 +510,7 @@ class DatabaseGUIApp(App): #Aplicación principal
         self.archivo = ''
         self.nombreArchivo=''
         self.agregar=True
+        self.pag = 0
         return self.pantalla
 
     #Función que se ejecuta al arrastrar un archivo a la ventana
@@ -499,9 +520,10 @@ class DatabaseGUIApp(App): #Aplicación principal
             self.nombreArchivo = "./pdf/" + str(time.time()) + ".pdf"
             self.SubiendoArchivo = False
             shutil.copy(file_path,self.nombreArchivo)
-            self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+            print(self.pag)
+            self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
             self.pantalla.lista.reset()
-            self.pantalla.lista.build(entrada=self.pantalla.campos,pag=0,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+            self.pantalla.lista.build(entrada=self.pantalla.campos,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
 
     def on_pause(self):
         return True
@@ -517,6 +539,7 @@ Función principal
 Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGUIApp
 '''
 
+
 if __name__ == '__main__': #Función principal
 
     table = "CV"
@@ -524,7 +547,7 @@ if __name__ == '__main__': #Función principal
     xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
     df = pd.read_excel(path) #Se lee el documento de excel  
-    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = False) #Se pasa el documento de excel a sql
+    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
     c = miConexion.cursor()
     c.execute('ALTER TABLE CV ADD PDF TEXT')
     pathFile = ''    
