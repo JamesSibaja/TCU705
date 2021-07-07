@@ -34,6 +34,21 @@
         padding: (10,0)
         valign:'middle'
         color: 1,1,1,1
+
+
+<TitlePag>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint:(1,1)
+
+    Label:
+        text: root.g
+        text_size:self.size
+        padding: (10,0)
+        halign:'center'
+        bold: True
+        valign:'middle'
+        color: 0.3,0.3,0.3,1
     
 <BotonOpcion>:
     size_hint_y: None
@@ -146,7 +161,7 @@
     scroll_type:  ['bars']
 
 <DataViewer>:
-    rgb:(0,0,0)
+    rgb:(0.72,0.72,0.72)
     size_hint: (1,0.88)
     effect_cls: ScrollEffect
     do_scroll_y: True
@@ -156,7 +171,7 @@
     scroll_type:  ['bars']
     
 
-<DatabaseGUIApp>:
+<DatabaseGUI>:
     canvas:
         Color:
             rgb:0.72,0.72,0.72

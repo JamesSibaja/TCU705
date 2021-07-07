@@ -6,7 +6,6 @@ Parte 2 (listas y filtros)
     -Arreglar multilinea
     -Se crea una base por cada vez que se ejecuta el programa
     -Mejorar nombres de variables
-    -ignorar tildes en el filtrado
     -Si el campo funciona con alguna clasificación, se debe tomar en cuanta al mostrar los campos
     -Considerar cambiar campo opción por diccionario
     -Agregar scroll en la barra de tarea    
@@ -19,6 +18,9 @@ Parte 2 (listas y filtros)
     -Agregrar opción para cancelar inserción de pdf o cambiar pdf
     -Fijar un tamaño máximo para boton agregar pdf
     -Analizar opciones al trabajar base con indices
-    -Cuando se filtra la paginación no se adapta también requiere que se mejore la estética
     -Allen Renato Sibaja Chinchilla revisar nivel de inglés (error de codificación)
     -Mejorar interfaz de estadísticas
+    -Quitar barra superior e inferior (o agregar titulo acorde) al mostrar estadísticas
+    -Ordenar stadísticas de mayor a menor, con paginación
+    -Incluir opción de eliminar o agregar campos
+    -Incluir opción de de cambiar y agregar nuevas bases

@@ -88,7 +88,8 @@ class DatabaseGUI(BoxLayout):
             self.filtrosOpcion.append(False)
             contCampos+=1
         self.lista = DataViewer(index=index,entrada=self.campos,pag = self.numPag)
-        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        self.pagina.add_widget(BoxLayout())
+        self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(orientation= 'vertical')
         for selectField in self.campos:
@@ -116,9 +117,13 @@ class DatabaseGUI(BoxLayout):
         self.pagina.clear_widgets()
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
-        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        else:
+            self.pagina.add_widget(BoxLayout())
+        self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+        else:
+            self.pagina.add_widget(BoxLayout())
 
     def anteriorPagina(self,obj):
         self.lista.reset()
@@ -129,9 +134,13 @@ class DatabaseGUI(BoxLayout):
         self.pagina.clear_widgets()
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
-        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        else:
+            self.pagina.add_widget(BoxLayout())
+        self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
             self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+        else:
+            self.pagina.add_widget(BoxLayout())
 
     def toolbarHide(self,obj): 
         self.contenedor.show = not self.contenedor.show
@@ -216,12 +225,21 @@ class DatabaseGUI(BoxLayout):
         self.numPag = 0
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
         self.pagina.clear_widgets()
+        filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
+        #print(filtro)
+        for x in c.execute(filtro):
+                    for y in x:
+                        self.lista.totalDatos=y
         if(self.numPag>0):
             self.pagina.add_widget(Button(text='< Anterior',on_press=self.anteriorPagina))
+        else:
+            self.pagina.add_widget(BoxLayout())
        
-        self.pagina.add_widget(TitleFilter(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50)),filtro=False))
+        self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         if(self.numPag + 1 < math.ceil(self.lista.totalDatos/50)):
                 self.pagina.add_widget(Button(text='Siguiente >',on_press=self.siguientePagina))
+        else:
+            self.pagina.add_widget(BoxLayout())
                 
     def nuevoInicio(self,obj):
         self.nuevoFiltro = True
@@ -284,10 +302,12 @@ class DataViewer(ScrollView):
         super(DataViewer, self).__init__()
         self.index = index
         self.totalDatos = 0
-        self.filtro = ''
+        self.filtroWhere = ''
+        self.filtroSelect = ''
         self.calcEst = ''
         for row in c.execute('SELECT * From CV'):
             self.totalDatos += 1
+        self.total = self.totalDatos
         self.build(entrada =entrada,imagen=True,pag=0)
 
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
@@ -299,36 +319,37 @@ class DataViewer(ScrollView):
         color = True
         cont = 0
         
-        self.filtro = "SELECT `"+ self.index +"`"
+        self.filtroSelect = "SELECT `"+ self.index +"`"
         n = 0
         for selectField in entrada:
             if (n == 0):
-                self.filtro += ", "
-            self.filtro += "`" + str(selectField) + "`"
+                self.filtroSelect += ", "
+            self.filtroSelect += "`" + str(selectField) + "`"
             if (selectField == 'PDF'):
                 PDF = (True,n)
             if(selectField != entrada[len(entrada)-1]):
-                self.filtro += ", "
+                self.filtroSelect += ", "
             n += 1
             
-        self.filtro +=" FROM CV"
+        self.filtroWhere =" FROM CV"
         n=0
         primero=True
         for elemento in busqueda:
             if elemento.text.split() != []:
                 if primero:
-                    self.filtro +=" WHERE "
+                    self.filtroWhere +=" WHERE "
 
                 for palabra in elemento.text.split():
                     if primero:
                         primero = False
-                        self.filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
+                        self.filtroWhere += self.sinTilde(str(filtros[n]),str(palabra))
                         
                     else:
-                        self.filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
+                        self.filtroWhere +="and "+self.sinTilde(str(filtros[n]),str(palabra))
             n+=1
-        filtro = self.filtro + " LIMIT 50 OFFSET " + str(pag*50)
+        filtro = self.filtroSelect + self.filtroWhere + " LIMIT 50 OFFSET " + str(pag*50)
         color = False
+        #print(filtro)
         for row in c.execute(filtro):
             
             self.filas.append(Fila())
@@ -358,33 +379,46 @@ class DataViewer(ScrollView):
             
         self.add_widget(self.contenedor)
 
+    def sinTilde(self,word1,word2):
+        text = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(`"+str(word1)+"`),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N') LIKE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER('%"+str(word2)+"%'),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N')"
+        return text
+
     def calc(self,text):
         #self.contenedor=DataViewerContainer()
         filtro = "SELECT `"+ str(text) +"` FROM CV"
         data = pd.read_sql_query(filtro, miConexion)
         print(data.columns)
         data2=pd.unique(data[str(text)])
+        data3 =[]
         dataCount=0
         for palabra in data2:
-            data2[dataCount] = (str(palabra).upper()).split()
+            if palabra != None:
+                #s = 'áéí el niño está en el avión'
+                a,b = 'áéíóúüñÁÉÍÓÚÜÑ','aeiouunAEIOUUN'
+                trans = str.maketrans(a,b)
+                # hola = unicodedata.normalize('NFKD',(str(palabra).upper())).encode('ASCII', 'ignore')
+                # hola2= "hola "+ hola
+                #print((str(palabra).upper()).translate(trans))
+                #data3.append((unicodedata.normalize('NFKD',(str(palabra).upper())).encode('ASCII', 'ignore')).split())
+                data3.append(((str(palabra).upper()).translate(trans)).split())
             dataCount+=1
        #data2 = set(data2)
-        print(data2)
-        #print(text)
-        for diferente in data2:
+        #print(data3[0][0])
+        #print(text
+        for diferente in data3:
             if diferente != None:
-                filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM CV WHERE"
+                filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM CV WHERE "
                 primero = True
                 for palabra in diferente:
                     self.calcEst += str(palabra)+" "
                     if primero:
                         primero=False
-                        filtro2 += " `" + str(text) + "` LIKE '%"+str(palabra)+"%'"
+                        filtro2 += self.sinTilde(str(text),str(palabra)) 
                     else:                        
-                        filtro2 += "and `" + str(text) + "` LIKE '%"+str(palabra)+"%'"
+                        filtro2 += "and " + self.sinTilde(str(text),str(palabra)) 
                 for x in c.execute(filtro2):
                     for y in x:
-                        self.calcEst +=": "+ str(y) + " (" + str(round((y*100) /self.totalDatos,2))+"%)"
+                        self.calcEst +=": "+ str(y) + " (" + str(round((y*100) /self.total,2))+"%)"
                 self.calcEst +="\n"
         print(self.calcEst)
         self.add_widget(Info(self.calcEst))
@@ -392,48 +426,8 @@ class DataViewer(ScrollView):
         self.calcEst = ''
 
     def insertPdf(self,fileName,idNum,pag,filtros=[],busqueda=[],imagen=False):
-        cont = 0
-        cont2 = 0
-        
-        #filtro = "SELECT * FROM CV LIMIT 50 OFFSET " + str(pag*50) + " WHERE " + self.index + " = " + str(idNum)
-        # n=0
-        # primero=True
-        # for elemento in busqueda:
-        #     if elemento.text.split() != []:
-        #         if primero:
-        #             filtro +=" WHERE " + self.index + " LIKE " + str(idNum)
-
-        #         for palabra in elemento.text.split():
-        #             if primero:
-        #                 primero = False
-        #                 filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
-                        
-        #             else:
-        #                 filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
-        #     n+=1
-       
-        # palabras = []
-        # for row in c.execute(filtro):
-            
-        #     if cont == idNum:
-        #         for x in row:
-        #             palabras.append(str(x))            
-        #     cont += 1
-        # n=0
-        # primero=True
         filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
-        # for nombre in list(map(lambda x: x[0], c.execute('select * from CV').description)):
-
-        #     if primero:
-        #         primero = False
-        #         if(str(palabras[n])!='None'):
-        #             filtro +="`" + str(nombre)+"` = '" + str(palabras[n])+"' "
-
-        #     else:
-        #         if(str(palabras[n])!='None'):
-        #             filtro +=" and `"+str(nombre)+"` = '" + str(palabras[n])+"' "
-        #     n+=1
-        print(filtro)
+        #print(filtro)
         c.execute(filtro)
         miConexion.commit()
 
@@ -455,6 +449,12 @@ class TitleFilter(BoxLayout):
         super(TitleFilter, self).__init__()
         self.g = texto
         self.filtro =filtro
+
+class TitlePag(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(TitlePag, self).__init__()
+        self.g = texto
 
 #Separadores y contenedores varios
 class Separador2(BoxLayout):
