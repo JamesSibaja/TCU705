@@ -65,6 +65,25 @@
             size: self.size
             pos: self.pos
 
+<Info>:
+    orientation: 'vertical'
+    padding: -2
+    size_hint: (1,1)
+    
+    canvas:
+        Color:
+            rgb: (0.83,0.83,0.9) 
+        Rectangle:
+            size: (self.size)
+            pos: self.pos
+    Label:
+        text_size:self.size
+        padding: (15,15)
+        halign:'center'
+        valign:'top'
+        text: root.g
+        color: 0,0,0,1
+
 <campoBD1>:
     orientation: 'vertical'
     padding: -2

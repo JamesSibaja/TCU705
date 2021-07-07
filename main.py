@@ -15,6 +15,7 @@ import shutil
 import time
 import webbrowser
 import math
+import unicodedata
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -94,6 +95,7 @@ class DatabaseGUI(BoxLayout):
             self.filaTitulo.add_widget(TitleField(selectField))
         self.palabrasBuscadas={}
         self.nuevoFiltro = False
+        self.newEst = False
         self.cambiarCampo = False
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         #self.divisor.add_widget(self.contenedor)
@@ -141,7 +143,7 @@ class DatabaseGUI(BoxLayout):
 
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
-        if self.nuevoFiltro or self.cambiarCampo:
+        if self.nuevoFiltro or self.cambiarCampo or self.newEst:
             contTexto =0
             for filtro in self.filtros:
                 self.palabrasBuscadas.update({self.listaFiltros[contTexto]:filtro.text})
@@ -154,6 +156,8 @@ class DatabaseGUI(BoxLayout):
                     self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.camposOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
                 if(self.nuevoFiltro):
                     self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8) if self.filtrosOpcion[contBotones] else (0.8,0, 0.1, 1), size_hint=(1, 0.05),on_press=self.nuevoFinal)
+                if(self.newEst):
+                    self.newBoton= BotonOpcion(text = str(posibleFiltro),background_color =(0, 0.81, 0.59, 0.8), size_hint=(1, 0.05),on_press=self.newFinal)
                 self.filtrosBotones.append(self.newBoton)
                 contBotones +=1
             n=0
@@ -168,9 +172,11 @@ class DatabaseGUI(BoxLayout):
             self.submit = BotonOpcion(text = 'Aplicar Filtros',background_color =(0.3, 0.59, 0.1,1),on_press=self.buscar)
             self.submit2 = BotonOpcion(text = 'Filtros',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoInicio)
             self.submit3 = BotonOpcion(text = 'Columnas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoCampo)
+            self.submit4 = BotonOpcion(text = 'Estadísticas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoEst)
             
             self.contenedor.add_widget(self.submit3)
             self.contenedor.add_widget(self.submit2)
+            self.contenedor.add_widget(self.submit4)
             for filtro in self.listaFiltros:
                 if (self.palabrasBuscadas.get(filtro) != None):
                     self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint=(1, 0.05)))
@@ -186,7 +192,11 @@ class DatabaseGUI(BoxLayout):
             if n > 0:
                 self.contenedor.add_widget(Separador())
                 self.contenedor.add_widget(self.submit)
-           
+
+    def newFinal(self,obj):
+        self.lista.reset()
+        self.lista.calc(obj.text)
+
     def cambiarColumnas(self):
         self.lista.reset()
         self.campos=[]
@@ -215,6 +225,10 @@ class DatabaseGUI(BoxLayout):
                 
     def nuevoInicio(self,obj):
         self.nuevoFiltro = True
+        self.toolbarBuilder()
+
+    def nuevoEst(self,obj):
+        self.newEst = True
         self.toolbarBuilder()
 
     def nuevoFinal(self,obj):
@@ -247,6 +261,7 @@ class DatabaseGUI(BoxLayout):
                     contFiltro += 1
             self.cambiarCampo = False
             self.nuevoFiltro = False
+            self.newEst = False
             self.toolbarBuilder()
 
     def nuevoCampo(self,obj):
@@ -269,6 +284,8 @@ class DataViewer(ScrollView):
         super(DataViewer, self).__init__()
         self.index = index
         self.totalDatos = 0
+        self.filtro = ''
+        self.calcEst = ''
         for row in c.execute('SELECT * From CV'):
             self.totalDatos += 1
         self.build(entrada =entrada,imagen=True,pag=0)
@@ -282,43 +299,36 @@ class DataViewer(ScrollView):
         color = True
         cont = 0
         
-        filtro = "SELECT `"+ self.index +"`"
+        self.filtro = "SELECT `"+ self.index +"`"
         n = 0
         for selectField in entrada:
             if (n == 0):
-                filtro += ", "
-            filtro += "`" + str(selectField) + "`"
+                self.filtro += ", "
+            self.filtro += "`" + str(selectField) + "`"
             if (selectField == 'PDF'):
                 PDF = (True,n)
             if(selectField != entrada[len(entrada)-1]):
-                filtro += ", "
+                self.filtro += ", "
             n += 1
             
-        filtro +=" FROM CV"
+        self.filtro +=" FROM CV"
         n=0
         primero=True
         for elemento in busqueda:
             if elemento.text.split() != []:
                 if primero:
-                    filtro +=" WHERE "
+                    self.filtro +=" WHERE "
 
                 for palabra in elemento.text.split():
                     if primero:
                         primero = False
-                        filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
+                        self.filtro +="`" + str(filtros[n])+"` COLLATE NOACCENTS LIKE '%" + str(palabra)+"%'"
                         
                     else:
-                        filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
+                        self.filtro +="and `"+str(filtros[n])+"` LIKE '%" + str(palabra)+"%'"
             n+=1
-        filtro += " LIMIT 50 OFFSET " + str(pag*50)
+        filtro = self.filtro + " LIMIT 50 OFFSET " + str(pag*50)
         color = False
-        data = pd.read_sql_query(filtro, miConexion)
-        data2=pd.unique(data[str(entrada[0])])
-        for diferente in data2:
-            filtro2 = "SELECT COUNT(`"+ str(entrada[0]) +"`) FROM CV WHERE `" + str(entrada[0]) + "` = '"+str(diferente)+"'"
-            for x in c.execute(filtro2):
-                for y in x:
-                    print(y)
         for row in c.execute(filtro):
             
             self.filas.append(Fila())
@@ -347,6 +357,39 @@ class DataViewer(ScrollView):
             self.contenedor.add_widget(row)
             
         self.add_widget(self.contenedor)
+
+    def calc(self,text):
+        #self.contenedor=DataViewerContainer()
+        filtro = "SELECT `"+ str(text) +"` FROM CV"
+        data = pd.read_sql_query(filtro, miConexion)
+        print(data.columns)
+        data2=pd.unique(data[str(text)])
+        dataCount=0
+        for palabra in data2:
+            data2[dataCount] = (str(palabra).upper()).split()
+            dataCount+=1
+       #data2 = set(data2)
+        print(data2)
+        #print(text)
+        for diferente in data2:
+            if diferente != None:
+                filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM CV WHERE"
+                primero = True
+                for palabra in diferente:
+                    self.calcEst += str(palabra)+" "
+                    if primero:
+                        primero=False
+                        filtro2 += " `" + str(text) + "` LIKE '%"+str(palabra)+"%'"
+                    else:                        
+                        filtro2 += "and `" + str(text) + "` LIKE '%"+str(palabra)+"%'"
+                for x in c.execute(filtro2):
+                    for y in x:
+                        self.calcEst +=": "+ str(y) + " (" + str(round((y*100) /self.totalDatos,2))+"%)"
+                self.calcEst +="\n"
+        print(self.calcEst)
+        self.add_widget(Info(self.calcEst))
+        #self.add_widget(self.contenedor)
+        self.calcEst = ''
 
     def insertPdf(self,fileName,idNum,pag,filtros=[],busqueda=[],imagen=False):
         cont = 0
@@ -437,6 +480,12 @@ class BotonOpcion(Button):
 
 class BotonOpcion2(Button):
     pass
+
+class Info(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(Info, self).__init__()
+        self.g = texto
 
 class campoBD1(BoxLayout):
     g = StringProperty()

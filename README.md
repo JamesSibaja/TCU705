@@ -19,3 +19,6 @@ Parte 2 (listas y filtros)
     -Agregrar opción para cancelar inserción de pdf o cambiar pdf
     -Fijar un tamaño máximo para boton agregar pdf
     -Analizar opciones al trabajar base con indices
+    -Cuando se filtra la paginación no se adapta también requiere que se mejore la estética
+    -Allen Renato Sibaja Chinchilla revisar nivel de inglés (error de codificación)
+    -Mejorar interfaz de estadísticas
