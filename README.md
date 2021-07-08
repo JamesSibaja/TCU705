@@ -3,12 +3,10 @@ Parte 2 (listas y filtros)
     Ya se muestra una lista en pantalla con los datos de la base y se puesde filtrar (usando kivy)'
 
     Falta cambiar:
-    -Arreglar multilinea
     -Se crea una base por cada vez que se ejecuta el programa
     -Mejorar nombres de variables
     -Si el campo funciona con alguna clasificación, se debe tomar en cuanta al mostrar los campos
-    -Considerar cambiar campo opción por diccionario
-    -Agregar scroll en la barra de tarea    
+    -Considerar cambiar campo opción por diccionario  
     -Optimizar filtrado, solo filtrar si es el filtro es diferente
     -Revisar que el archivo sea pdf (se podría crear una lista de posibles formatos)
     -Al editar campos, si se tienen filtros, se aplican aún sin tocar la opción de buscar
@@ -23,4 +21,9 @@ Parte 2 (listas y filtros)
     -Quitar barra superior e inferior (o agregar titulo acorde) al mostrar estadísticas
     -Ordenar stadísticas de mayor a menor, con paginación
     -Incluir opción de eliminar o agregar campos
-    -Incluir opción de de cambiar y agregar nuevas bases
+    -Incluir opción de cambiar y agregar nuevas bases
+    -Ajustar texto a botones
+    -Mejorar ajuste de texto a botones de la barra de tareas
+    -Tener un ancho minimo para las columnas
+                -Arreglar interfaz de estadística
+                -Agregar opción de editar

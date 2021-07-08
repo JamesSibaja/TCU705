@@ -72,7 +72,8 @@
 <Separador2>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
-    size_hint: (1, 0.03) 
+    size_hint: (1, None) 
+    height: 15
     canvas:
         Color:
             rgb: (0, 0.30, 0.40)
@@ -102,8 +103,7 @@
 <campoBD1>:
     orientation: 'vertical'
     padding: -2
-    size_hint_y:None
-    height:60
+    size_hint: (1,1)
     
     canvas:
         Color:
@@ -159,6 +159,21 @@
     bar_color: 0.5, 0.5, 0.5, 0.85   
     bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
     scroll_type:  ['bars']
+
+<Toolbar>:
+    size_hint:((0.25,1) if Window.size[0]*0.2>100 else (100/( Window.size[0]-100),1))if root.show else (1/( Window.size[0]-1),1)
+    effect_cls: ScrollEffect
+    do_scroll_y: True
+    bar_width: 7
+    bar_color: 0.5, 0.5, 0.5, 0.85   
+    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
+    scroll_type:  ['bars']
+    canvas:
+        Color:
+            rgb: (0, 0.30, 0.40)
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 <DataViewer>:
     rgb:(0.72,0.72,0.72)
@@ -224,16 +239,6 @@
         anchor_x: 'center'
         anchor_y: 'center'
 
-<Toolbar>:
-    size_hint:((0.25,1) if Window.size[0]*0.2>100 else (100/( Window.size[0]-100),1))if root.show else (1/( Window.size[0]-1),1)
-    padding: 10
-    canvas:
-        Color:
-            rgb: (0, 0.30, 0.40)
-        Rectangle:
-            size: self.size
-            pos: self.pos
-
 <ToolbarShow>:
     size_hint_y:1
     size_hint_x:None
@@ -246,7 +251,18 @@
             pos: self.pos
     Label:
         text:'.\n.\n.'
-            
+
+<ToolbarContaner>:
+    size_hint_y: None
+    minimum_height: self.height
+    padding: 10
+    canvas:
+        Color:
+            rgb: (0, 0.30, 0.40)
+        Rectangle:
+            size: self.size
+            pos: self.pos     
+
 <DataViewerContainer>:
     size_hint_y: None
     minimum_height: self.height
