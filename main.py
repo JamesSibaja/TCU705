@@ -10,7 +10,7 @@ y segura de bases de datos.
 
 import sqlite3
 import pandas as pd
-from pdf2image import convert_from_path
+#from pdf2image import convert_from_path
 import shutil
 import time
 import webbrowser
