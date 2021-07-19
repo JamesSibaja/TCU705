@@ -72,7 +72,9 @@ class DatabaseGUI(BoxLayout):
         self.estadisticas = False
         self.filtroCalc = False
         self.datoCalc = ""
-        self.contenedor = Toolbar() 
+        self.toolbar = Toolbar()
+        self.contenedor = ToolbarSub() 
+
         #self.contenedorStack= ToolbarContaner()  
         self.listaFiltros =[]
         self.filaTitulo = FilaTitulo()
@@ -105,17 +107,33 @@ class DatabaseGUI(BoxLayout):
         self.newEst = False
         self.cambiarCampo = False
         
-        #self.divisor.add_widget(self.contenedor)
         
-        #self.add_widget(self.contenedorBarra)
-        self.add_widget(self.contenedor)
-        #self.contenedor.add_widget(self.contenedorStack)
-        #self.contenedorStack.bind(minimum_height=self.contenedor.setter('height'))
-        self.add_widget(ToolbarShow(on_press=self.toolbarHide))
+        self.pantalla = BoxLayout(orientation='horizontal')
+        #Barra de Menú
+        self.barraMenu = MenuBar()
+        self.barraMenu.add_widget(ToolbarShow(on_press=self.toolbarHide))
+        self.submit2 =ButtonMain2(texto = 'Filtro',on_press=self.nuevoInicio)
+        self.submit3 = ButtonMain2(texto = 'Columnas',on_press=self.nuevoCampo)
+        self.submit4 = ButtonMain2(texto = 'Estadísticas',on_press=self.nuevoEst)
+        self.barraMenu.add_widget(self.submit3)
+        self.barraMenu.add_widget(self.submit2)
+        self.barraMenu.add_widget(self.submit4)
+        self.barraMenu.add_widget(ButtonMain2(texto = 'Ajustes'))
+        self.subTitle = BoxLayout(size_hint=(1,None),height=40,padding= (15,10,15,10))
+        self.toolbar.add_widget(self.subTitle)
+        self.toolbar.add_widget(self.contenedor)
+        self.subBoton = BoxLayout(size_hint=(1,None),height=50,padding= (15,5,15,10))
+        self.toolbar.add_widget(self.subBoton)
+        self.pantalla.add_widget(self.toolbar)
+        
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
-        self.add_widget(self.contenedorLista)
+        self.pantalla.add_widget(self.contenedorLista)
+
+        self.add_widget(self.barraMenu)
+        self.add_widget(self.pantalla)
+
         self.toolbarBuilder()
 
     def siguientePagina(self,obj):
@@ -152,16 +170,21 @@ class DatabaseGUI(BoxLayout):
 
     def toolbarHide(self,obj): 
         self.contenedor.show = not self.contenedor.show
+        self.toolbar.show = not self.toolbar.show
         if self.contenedor.show:
             self.toolbarBuilder()
         else:
             self.contenedor.clear_widgets()
+            self.subTitle.clear_widgets()
+            self.subBoton.clear_widgets()
             
 
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
         self.contenedor.scroll_y=1
         self.contenedor.clear_widgets()
+        self.subBoton.clear_widgets()
+        self.subTitle.clear_widgets()
         self.contenedor.build()
         if self.nuevoFiltro or self.cambiarCampo or self.newEst:
             print(self.nuevoFiltro)
@@ -177,10 +200,10 @@ class DatabaseGUI(BoxLayout):
 
             if(self.cambiarCampo):
                 self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
+                #self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
                 self.contenedor.stack.title.add_widget(ToolbarText("Columnas"))
-                self.contenedor.stack.add_widget(self.contenedor.stack.title)
-                self.contenedor.stack.add_widget(Separador())
+                self.subTitle.add_widget(self.contenedor.stack.title)
+                #self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(Title("Mostrar:"))
                 # self.contenedor.stack.add_widget(Color(">Ocultar",True))
                 # self.contenedor.stack.add_widget(Color(">Mostrar",False))
@@ -188,10 +211,10 @@ class DatabaseGUI(BoxLayout):
                 
             if(self.nuevoFiltro):
                 self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
+                #self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
                 self.contenedor.stack.title.add_widget(ToolbarText("Filtros"))
-                self.contenedor.stack.add_widget(self.contenedor.stack.title)
-                self.contenedor.stack.add_widget(Separador())
+                self.subTitle.add_widget(self.contenedor.stack.title)
+                #self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(Title("Filtrar por:"))
                 # self.contenedor.stack.add_widget(Color(">No incluir",True))
                 # self.contenedor.stack.add_widget(Color(">Incluir",False))
@@ -199,10 +222,11 @@ class DatabaseGUI(BoxLayout):
 
             if(self.newEst):
                 self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
+                #self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
                 self.contenedor.stack.title.add_widget(ToolbarText("Datos"))
-                self.contenedor.stack.add_widget(Separador())
-                self.contenedor.stack.add_widget(self.contenedor.stack.title)
+                
+                self.subTitle.add_widget(self.contenedor.stack.title)
+                #self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(Title("Escoger Datos:"))
                 self.contenedor.stack.add_widget(Separador())
             for posibleFiltro in self.nombres:
@@ -232,7 +256,7 @@ class DatabaseGUI(BoxLayout):
             #     self.contenedor.stack.add_widget(BotonOpcion(border= (10,10,10,10),text = 'Volver',background_color =(0.8,0, 0.1, 1),on_press=self.aceptarCambios))
             # else:
                 self.contenedor.stack.add_widget(Separador2())
-                self.contenedor.stack.add_widget(ButtonAccept(texto = 'Aceptar',on_press=self.aceptarCambios))
+                self.subBoton.add_widget(ButtonAccept(texto = 'Aceptar',on_press=self.aceptarCambios))
                 #self.contenedor.stack.add_widget(BotonOpcion(border= (10,10,10,10),text = 'Aceptar',background_color =(0, 0.59, 0.81,1),on_press=self.aceptarCambios))
             
             #self.menuFiltro = False
@@ -257,9 +281,9 @@ class DatabaseGUI(BoxLayout):
                         self.filtros.append(TextInput(text='',size_hint_y=None,height=45))
                 n=0
                 self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
+                #self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
                 self.contenedor.stack.title.add_widget(ToolbarText("Filtros"))
-                self.contenedor.stack.add_widget(self.contenedor.stack.title)
+                self.subTitle.add_widget(self.contenedor.stack.title)
                 self.contenedor.stack.add_widget(Separador2())
                 self.contenedor.stack.add_widget(ButtonMain(texto = 'Editar Filtros',on_press=self.editarFiltros))
                 self.contenedor.stack.add_widget(ButtonMain(texto = 'Limpiar Filtros',on_press=self.limpiar))
@@ -272,12 +296,12 @@ class DatabaseGUI(BoxLayout):
                     n+=1
                 if n > 0:
                     self.contenedor.stack.add_widget(Separador())
-                    self.contenedor.stack.add_widget(self.submit)
+                    self.subBoton.add_widget(self.submit)
             else:
                 if self.estadisticas:
                     self.contenedor.stack.clear_widgets()
                     self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                    self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
+                    #self.contenedor.stack.title.add_widget(ToolbarText("<",size=0.2))
                     self.contenedor.stack.title.add_widget(ToolbarText("Estadísticas"))
                     self.contenedor.stack.add_widget(self.contenedor.stack.title)
                    # self.contenedor.stack.add_widget(Title("Estadísticas"))
@@ -292,7 +316,7 @@ class DatabaseGUI(BoxLayout):
                     else:
                         self.contenedor.box.add_widget(BotonOpcion(text = 'No usar',background_color =(0.8,0, 0.1, 1),on_press=self.abFiltro))
                         self.botonFiltro = BotonOpcion(disabled =True,text = 'Filtros',on_press=self.nuevoInicio)
-                    
+                   
                     self.contenedor.box.add_widget(self.botonFiltro)
                     self.contenedor.stack.add_widget(self.contenedor.box)
                     self.contenedor.stack.add_widget(Separador2())
@@ -304,27 +328,27 @@ class DatabaseGUI(BoxLayout):
                     #self.contenedor.stack.add_widget(BotonOpcion(border= (10,10,10,10),text = 'Volver',background_color =(0.8,0, 0.1, 1),on_press=self.volverMenu))
                     #self.contenedor.stack.add_widget(Separador2())
               
-                else:
-                    self.contenedor.stack.clear_widgets()
-                    self.filtros = []
-                    self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                    self.contenedor.stack.title.add_widget(ToolbarText("x",size=0.2))
-                    self.contenedor.stack.title.add_widget(ToolbarText("Menú"))
-                    self.contenedor.stack.add_widget(self.contenedor.stack.title)
-                    self.contenedor.stack.add_widget(Separador())
-                    self.submit2 =ButtonMain(texto = 'Filtro',on_press=self.nuevoInicio)
-                    self.submit3 = ButtonMain(texto = 'Columnas',on_press=self.nuevoCampo)
-                    self.submit4 = ButtonMain(texto = 'Estadísticas',on_press=self.nuevoEst)
-                    #self.submit2 = BotonOpcion(text = 'Filtros',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoInicio)
-                    # self.submit3 = BotonOpcion(text = 'Columnas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoCampo)
-                    # self.submit4 = BotonOpcion(text = 'Estadísticas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoEst)
+                # else:
+                #     self.contenedor.stack.clear_widgets()
+                #     self.filtros = []
+                #     self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
+                #     #self.contenedor.stack.title.add_widget(ToolbarText("x",size=0.2))
+                #     self.contenedor.stack.title.add_widget(ToolbarText("Menú"))
+                #     self.contenedor.stack.add_widget(self.contenedor.stack.title)
+                #     self.contenedor.stack.add_widget(Separador())
+                #     self.submit2 = ButtonMain(texto = 'Filtro',on_press=self.nuevoInicio)
+                #     self.submit3 = ButtonMain(texto = 'Columnas',on_press=self.nuevoCampo)
+                #     self.submit4 = ButtonMain(texto = 'Estadísticas',on_press=self.nuevoEst)
+                #     #self.submit2 = BotonOpcion(text = 'Filtros',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoInicio)
+                #     # self.submit3 = BotonOpcion(text = 'Columnas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoCampo)
+                #     # self.submit4 = BotonOpcion(text = 'Estadísticas',background_color =(0, 0.59, 0.81,1),on_press=self.nuevoEst)
                     
-                    self.contenedor.stack.add_widget(self.submit3)
-                    self.contenedor.stack.add_widget(self.submit2)
-                    self.contenedor.stack.add_widget(self.submit4)
-                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Ajustes'))
+                #     self.contenedor.stack.add_widget(self.submit3)
+                #     self.contenedor.stack.add_widget(self.submit2)
+                #     self.contenedor.stack.add_widget(self.submit4)
+                #     self.contenedor.stack.add_widget(ButtonMain(texto = 'Ajustes'))
 
-                    self.contenedor.stack.add_widget(Separador2())
+                #     self.contenedor.stack.add_widget(Separador2())
                     #self.contenedor.stack.add_widget(BotonOpcion(text = 'Salir',background_color =(0.8,0, 0.1, 1)))
             
                     
@@ -502,6 +526,10 @@ class DatabaseGUI(BoxLayout):
                 
     def nuevoInicio(self,obj):
         self.newEst = False
+
+        self.cambiarCampo = False
+        self.estadisticas = False
+        self.nuevoFiltro = False
       
         if len(self.listaFiltros) == 0:
             self.nuevoFiltro = True
@@ -510,6 +538,12 @@ class DatabaseGUI(BoxLayout):
         self.toolbarBuilder()
 
     def nuevoEst(self,obj):
+        self.nuevoFiltro = False
+        self.menuFiltro = False
+        self.cambiarCampo = False
+        self.estadisticas = False
+        self.nuevoFiltro = False
+
         if self.datoCalc == "":
             self.newEst = True
         else:
@@ -592,6 +626,11 @@ class DatabaseGUI(BoxLayout):
 
     def nuevoCampo(self,obj):
         self.cambiarCampo = True
+        self.nuevoFiltro = False
+        self.menuFiltro = False
+        self.estadisticas = False
+        self.nuevoFiltro = False
+        self.newEst = False 
         self.toolbarBuilder()
 
 def on_enter(instance, value):
@@ -854,6 +893,14 @@ class ButtonMain(ButtonBehavior,BoxLayout):
         self.g = texto
         self.c = select
 
+class ButtonMain2(ButtonBehavior,BoxLayout):
+    g = StringProperty()
+    c = BooleanProperty()
+    def __init__(self,texto,select=False,**kwargs):
+        super(ButtonMain2, self).__init__(**kwargs)
+        self.g = texto
+        self.c = select
+
 class ButtonAccept(ButtonBehavior,BoxLayout):
     g = StringProperty()
    # c = BooleanProperty()
@@ -906,6 +953,9 @@ class ToolbarText(BoxLayout):
         self.s = size
 
 class Fila3(BoxLayout):
+    pass
+
+class MenuBar(BoxLayout):
     pass
 
 class BotonOpcion(Button):
@@ -963,10 +1013,17 @@ class campoBD2(BoxLayout):
         path = self.g
         webbrowser.open_new(path)
 
-class Toolbar(ScrollView):
+class Toolbar(BoxLayout):
     show = BooleanProperty()
     def __init__(self):
         super(Toolbar, self).__init__()
+        self.show=True
+
+
+class ToolbarSub(ScrollView):
+    show = BooleanProperty()
+    def __init__(self):
+        super(ToolbarSub, self).__init__()
         self.show=True
         self.build()
 

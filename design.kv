@@ -3,6 +3,24 @@
 #:import Window kivy.core.window.Window
 #:import ceil math.ceil
        
+<MenuBar>:
+    orientation: 'horizontal'
+    size_hint: (1,None)
+    height: 30
+
+    canvas:
+        Color:
+            rgb:0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        
+    canvas.before:
+        Color:
+            rgb: (0.2,0.2,0.2)
+        Line:
+            points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1]
+ 
 <Title>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
@@ -93,7 +111,7 @@
         bold: True
         valign:'middle'
         color: 1,1,1,1
-    
+  
 <BotonOpcion>:
     size_hint_y: None
     height: 30 * int(ceil((len(root.text)* 50) / Window.size[0]))
@@ -108,7 +126,7 @@
     height: 10 
     canvas:
         Color:
-            rgb:  0.65,0.65,0.65
+            rgb:  0.9,0.9,0.9
         Rectangle:
             size: self.size
             pos: self.pos
@@ -119,7 +137,7 @@
     height: 15
     canvas:
         Color:
-            rgb:  0.65,0.65,0.65
+            rgb:  0.9,0.9,0.9
         Rectangle:
             size: self.size
             pos: self.pos
@@ -195,15 +213,26 @@
 
 <Toolbar>:
     size_hint:((0.25,1) if Window.size[0]*0.2>150 else (150/( Window.size[0]-150),1))if root.show else (1/( Window.size[0]-1),1)
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgb: 0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<ToolbarSub>:
+    size_hint:(1,1)
+    #height: self.height-30
     effect_cls: ScrollEffect
     do_scroll_y: True
     bar_width: 5
-    bar_color: 0.5, 0.5, 0.5, 0.85   
-    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
+    bar_color: 0.7, 0.7, 0.7, 0.85   
+    bar_inactive_color:  0.7, 0.7, 0.7, 0.4 
     scroll_type:  ['bars']
     canvas:
         Color:
-            rgb: 0.65,0.65,0.65
+            rgb: 0.9,0.9,0.9
         Rectangle:
             size: self.size
             pos: self.pos
@@ -220,9 +249,10 @@
     
 
 <DatabaseGUI>:
+    orientation: 'vertical'
     canvas:
         Color:
-            rgb:0.85,0.85,0.85
+            rgb:0.75,0.75,0.75
         Rectangle:
             size: self.size
             pos: self.pos
@@ -248,11 +278,11 @@
             pos:self.pos
     canvas.after:
         Color:
-            rgb: (0.5,0.5,0.5)
+            rgb: (0,0,0)
         Line:
             points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1]
-        Line:
-            points: self.pos[0] , self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]+self.size[1]
+        # Line:
+        #     points: self.pos[0] , self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]+self.size[1]
         
     
 
@@ -263,7 +293,7 @@
     height:95
     canvas:
         Color:
-            rgb: (0.65,0.65,0.65)
+            rgb: (0.9,0.9,0.9)
         Rectangle:
             size: self.size
             pos: self.pos
@@ -303,13 +333,13 @@
 
     Label:
         text: root.g
-        halign:'left' 
+        halign:'center' 
         padding: (15,5) 
         valign:'top'
         font_size:14
         bold: True
         text_size:self.size
-        color:  (0.65,0.65,0.65,1)
+        color:  (0.9,0.9,0.9,1)
 
     # Label:
     #     text: root.g
@@ -344,11 +374,14 @@
             size: self.size[0],self.size[1]- self.r/2
             pos: self.pos[0],self.pos[1]+self.r/2
         
-    canvas.after:
-        Color:
-            rgb: (1,1,1)
-        Line:
-            points: self.pos[0] , self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]+self.size[1]
+    # canvas.after:
+    #     Color:
+    #         rgb: (0,0,0)
+    #     Line:
+    #         points: self.pos[0] , self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]+self.size[1]
+    #     Line:
+    #         points: self.pos[0] , self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]+self.size[1]
+               
 
 <FilaTitulo>:
     orientation: 'horizontal'
@@ -401,14 +434,14 @@
 
     canvas:
         Color:
-            rgb:(0.65,0.65,0.65)  if root.c else (0.45,0.45,0.45)
+            rgb:(0.9,0.9,0.9)  if root.c else (0.45,0.45,0.45)
         Line:
             points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1] 
      
 
     canvas.before:
         Color:
-            rgb:(0.15,0.15,0.15)if root.c else (0.65,0.65,0.65)
+            rgb:(0.15,0.15,0.15)if root.c else (0.9,0.9,0.9)
         Rectangle:
             size:self.size
             pos:self.pos
@@ -434,6 +467,21 @@
         valign:'top'
         text_size:self.size
         color: (0.95,0.95,0.95) if root.c else (0.25,0.25,0.25,1)
+
+<ButtonMain2>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 30 
+    #on_press: self.nuevaPagina()
+
+    Label:
+        text: root.g
+        halign:'center'
+        padding: (15,5)
+        bold: True
+        valign:'top'
+        text_size:self.size
+        color: (0.2,0.2,0.2)
 
 <ButtonAccept>:
     size_hint_x:1
@@ -484,20 +532,22 @@
 <ToolbarShow>:
     size_hint_y:1
     size_hint_x:None
-    width:8
+    width:15
     canvas:
         Color:
-            rgb: 0.2,0.2,0.2
+            rgb: 0.9,0.9,0.9
         Rectangle:
             size: self.size
             pos: self.pos
     Label:
-        text:'.\n.\n.'
+        text:'  ='
+        bold: True
+        color: (0.2,0.2,0.2)
 
 <ToolbarContaner>:
     size_hint_y: None
     minimum_height: self.height
-    padding: 10
+    padding: (10,10)
     # canvas:
     #     Color:
     #         rgb: (0, 0.30, 0.40)
@@ -532,5 +582,3 @@
         Rectangle:
             size: self.size
             pos: self.pos
-    
-
