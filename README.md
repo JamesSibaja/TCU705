@@ -28,4 +28,13 @@ Falta cambiar:
 -Cambiar de color los botones al pasar el mouse por arriba
 -Al limpiar filtro se debe cambiar la barra de titulo
 -Anadir opcion para salir del area de calculo
+-Al salir se deben limpiar las opciones de columna
+-Al esconder el menú se quita el menú de filtro
+
+    *Poner una imagen con 3 lineas
+    *Que el titulo y boton de la barra de herramientas se escondan bien
+    *Arreglar el código (una sola instrucción para barra de página, mejorar nombre de variables, y comentar)
+    *Mejorar interfaz de estadísticas
+-Agregar ópcion básica de editar
+
             -Agregar opción de editar
