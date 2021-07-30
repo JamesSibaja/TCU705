@@ -7,6 +7,7 @@
     orientation: 'horizontal'
     size_hint: (1,None)
     height: 30
+    padding: (3,3)
 
     canvas:
         Color:
@@ -25,7 +26,7 @@
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
     size_hint_y: None
-    height: 25 * int(ceil((len(root.g)* 45) / Window.size[0]))
+    height: 25 * int(ceil((len(root.g)* 40) / Window.size[0]))
     # canvas.before:
     #     Color:
     #         rgb: (0.35,0.35,0.35)
@@ -39,6 +40,7 @@
        # bold: True
         text_size:self.size
         font_size:15
+        bold:root.bold
         padding: (0,7)
         halign:'left'
         valign:'top'
@@ -114,7 +116,7 @@
   
 <BotonOpcion>:
     size_hint_y: None
-    height: 30 * int(ceil((len(root.text)* 50) / Window.size[0]))
+    height: 30 * int(ceil((len(root.text)* 25) / Window.size[0]))
     text_size:self.size
     padding: (10,0)
     halign: 'center'
@@ -193,13 +195,16 @@
 
         Button:
             id: boton
-            text: 'Agregar' if root.pdf else 'ver'
+            text: ('Agregar' if root.pdf else 'Eliminar') if root.edit else ('Vacio' if root.pdf else 'Ver')
             size_hint: (0.75, 0.5)
-            background_color: (0.15,0.25,0.8,1)
+            background_color: ((0.1,0.4,0.2,1)  if root.pdf else (0.5,0.2,0,1) ) if root.edit else ((0,0,0,0)  if root.pdf else (0.15,0.25,0.55,1) )
 
             anchor_x: 'center'
             anchor_y: 'center'
-            on_press: root.agregarPDF() if root.pdf else root.verPDF()
+            background_normal:''
+            background_down:'gris.png'
+            color: (1,1,1,1) if root.edit else ((0,0,0,1)  if root.pdf else (1,1,1,1) )
+            on_press: (root.agregarPDF() if root.pdf else root.delete()) if root.edit else (root.pasar() if root.pdf else root.verPDF())
 
 <Divisor>:
     rgb:(0,0,0)
@@ -212,7 +217,8 @@
     scroll_type:  ['bars']
 
 <Toolbar>:
-    size_hint:((0.25,1) if Window.size[0]*0.2>150 else (150/( Window.size[0]-150),1))if root.show else (1/( Window.size[0]-1),1)
+    size_hint:(None,1)
+    width:  (Window.size[0]*0.2 +6 if Window.size[0]*0.2>150 else 150) if root.show else 0
     orientation: 'vertical'
     canvas:
         Color:
@@ -272,7 +278,7 @@
     height:60
     canvas.before:
         Color:
-            rgb: (0.83,0.83,0.9) if root.color else (0.9,0.9,0.95)
+            rgb: (0.83-self.dark,0.83+self.dark,0.9-self.dark) if root.color else (0.9-self.dark,0.9+self.dark,0.95-self.dark)
         Rectangle:
             size:self.size
             pos:self.pos
@@ -300,11 +306,18 @@
 
 <ToolbarTitle>:
     orientation: 'horizontal'
-    size_hint:(1,None)
-    height:27
+    size_hint:(None,None)
+    width: Window.size[0]*0.2 if Window.size[0]*0.2>150 else 150
+    height:24
+   
+
+<ToolbarText>:
+    size_hint: (None,1)
+    width: (Window.size[0]*0.2-45 if Window.size[0]*0.2>150 else 105) if self.main else Window.size[0]*0.2
+
     canvas.before:
         Color:
-            rgb: 0.2,0.2,0.2
+            rgb: (0.2,0.2,0.2) if root.main else (0.9,0.9,0.9)
         Ellipse:
             pos: self.pos
             size: self.r,self.r
@@ -328,9 +341,6 @@
             size: self.size[0],self.size[1]- self.r
             pos: self.pos[0],self.pos[1]+self.r/2
 
-<ToolbarText>:
-    size_hint: (root.s,1)
-
     Label:
         text: root.g
         halign:'center' 
@@ -339,19 +349,7 @@
         font_size:14
         bold: True
         text_size:self.size
-        color:  (0.9,0.9,0.9,1)
-
-    # Label:
-    #     text: root.g
-    #     halign:'center'
-    #     padding: (15,5)
-    #     valign:'top'
-    #     bold: True
-    #     text_size:self.size
-    #     color:  (0.7,0.7,0.7,1)
-
-
-
+        color:  (0.9,0.9,0.9,1) if root.main else (0.2,0.2,0.2,1)
 
 <FilaPag>:
     orientation: 'horizontal'
@@ -504,21 +502,6 @@
             size: self.size[0] - 2*self.size[1], self.size[1]
             pos: self.pos[0]+(self.size[1]),self.pos[1]
 
-    # canvas.after:
-    #     Color:
-    #         rgb: 0.1,0.1,0.1.
-    #     Line:
-    #         circle: self.pos[0]+self.size[1],self.pos[1]+self.size[1]/2, self.size[1]/2,180,360,720
-    #         width:1.01
-    #     Line:
-    #         circle: self.pos[0]+self.size[0]-self.size[1],self.pos[1]+self.size[1]/2, self.size[1]/2,0,180,720
-    #         width:1.01
-    #     Line:
-    #         points: self.pos[0]+self.size[1],self.pos[1],self.pos[0]+self.size[0]-self.size[1],self.pos[1]
-    #         width:1.01
-    #     Line:
-    #         points: self.pos[0]+self.size[1],self.pos[1]+self.size[1],self.pos[0]+self.size[0]-self.size[1],self.pos[1]+self.size[1]
-    #         width:1.01
 
     Label:
         text: root.g
