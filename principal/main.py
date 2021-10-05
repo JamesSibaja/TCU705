@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
 '''
 Plataforma para base de datos con interfaz gráfica
 ========================
@@ -16,6 +17,7 @@ import time
 import webbrowser
 import math
 from operator import itemgetter
+from startMenu import StartMenu
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -51,14 +53,7 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 class DatabaseGUI(BoxLayout): 
     def __init__(self):
         super(DatabaseGUI, self).__init__()
-        #Aquí se define el menú inicial
-        self.menu = MenuInicial()
-        self.menu.add_widget( Button(text='Mis proyectos', size_hint=(.3, .1),
-                pos_hint={'x':.15, 'y':.2},on_press=self.build))
-        self.menu.add_widget( Button(text='Nuevo proyecto', size_hint=(.3, .1),
-                pos_hint={'x':.55, 'y':.2},on_press=self.build))
-        self.menu.add_widget(Image(source='logo.png', size_hint=(1, .6),
-                pos_hint={'x':0, 'y':0.35}))
+        self.menu = StartMenu(self)
         self.add_widget(self.menu)
 
     #Constructor de la ventana principal
@@ -85,7 +80,7 @@ class DatabaseGUI(BoxLayout):
         self.filtrosOpcion = []
         self.filtros = []
         self.campos = []
-        self.nombres = list(map(lambda x: x[0], c.execute('select * from CV').description))
+        self.nombres = list(map(lambda x: x[0], c.execute('select * from '+table).description))
         self.index = self.nombres[0]
         self.nombres.pop(0)
         contCampos=0
@@ -113,18 +108,13 @@ class DatabaseGUI(BoxLayout):
         #Se crea la barra de Menú y barra de herramientas
         self.barraMenu = MenuBar()
         self.submitOptions = []
-        self.submitOptions.append(ToolbarText(texto = 'Inicio',on_press=self.volverMenu))
+        self.submitOptions.append(ToolbarText(texto = 'Ver',on_press=self.volverMenu))
+        self.submitOptions.append(ToolbarText(texto = 'Editar'))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
-        # self.submitOptions.append(ToolbarTitle(on_press=self.volverMenu))
-        # self.submitOptions[3].add_widget(ToolbarShow(on_press=self.toolbarHide))
-        #self.submitOptions[3].add_widget(ToolbarText("Inicio"))
         self.menubarBuilder()
-      
-        #self.subTitle = BoxLayout(orientation='vertical',size_hint=(1,None),height=45,padding= (15,10,15,10))
-        #self.toolbar.add_widget(self.subTitle)
         self.toolbar.add_widget(self.contenedor)
         self.subBoton = BoxLayout(size_hint=(1,None),height=50,padding= (15,5,15,10))
         self.toolbar.add_widget(self.subBoton)
@@ -145,7 +135,6 @@ class DatabaseGUI(BoxLayout):
             self.toolbarBuilder()
         else:
             self.contenedor.clear_widgets()
-            #self.subTitle.clear_widgets()
             self.subBoton.clear_widgets()
             
     #Constructor de la barra de herramientas
@@ -153,29 +142,29 @@ class DatabaseGUI(BoxLayout):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
         self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
+        self.MenuMain.add_widget(ToolbarTitleText(texto= table))
         
         contOpt = 0
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
                 option.main = True
-                self.MenuMain.add_widget(option)
+                #self.MenuMain.add_widget(option)
             contOpt = contOpt + 1
 
         self.barraMenu.add_widget(self.MenuMain)
-
+        self.barraMenu.add_widget(SeparadorH())
+        #self.barraMenu.add_widget(ToolbarShow(on_press=self.toolbarHide))        
         contOpt = 0
         for option in self.submitOptions:
+            self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-                self.barraMenu.add_widget(option)
-            contOpt = contOpt + 1
-        
+            contOpt = contOpt + 1        
  
     def toolbarBuilder(self):   
         self.contenedor.scroll_y=1
         self.contenedor.clear_widgets()
         self.subBoton.clear_widgets()
-        #self.subTitle.clear_widgets()
         self.contenedor.build()
         if self.nuevoFiltro or self.cambiarCampo or self.newEst:
             contTexto =0
@@ -187,23 +176,12 @@ class DatabaseGUI(BoxLayout):
             contBotones =0
 
             if(self.cambiarCampo):
-                # self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                # self.contenedor.stack.title.add_widget(ToolbarText("Columnas"))
-                #self.subTitle.add_widget(self.contenedor.stack.title)
-                self.contenedor.stack.add_widget(Title("Mostrar:"))
-                
+                self.contenedor.stack.add_widget(Title("Mostrar:"))                
                 
             if(self.nuevoFiltro):
-                # self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                # self.contenedor.stack.title.add_widget(ToolbarText("Filtros"))
-                #self.subTitle.add_widget(self.contenedor.stack.title)
                 self.contenedor.stack.add_widget(Title("Filtrar por:"))
 
             if(self.newEst):
-                # self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                # self.contenedor.stack.title.add_widget(ToolbarText("Datos"))
-                
-                #self.subTitle.add_widget(self.contenedor.stack.title)
                 self.contenedor.stack.add_widget(Title("Escoger Datos:"))
                 self.contenedor.stack.add_widget(Separador())
 
@@ -232,8 +210,7 @@ class DatabaseGUI(BoxLayout):
                 
         else:
             
-            if self.menuFiltro:
-                
+            if self.menuFiltro:                
                 self.contenedor.stack.clear_widgets()
                 self.filtros = []
                 self.menuFiltro = False
@@ -249,8 +226,6 @@ class DatabaseGUI(BoxLayout):
                         self.filtros.append(TextInput(text='',size_hint_y=None,height=45))
                 n=0
                 self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                #self.contenedor.stack.title.add_widget(ToolbarText("Filtros"))
-                #self.subTitle.add_widget(self.contenedor.stack.title)
                 self.contenedor.stack.add_widget(Separador2())
                 self.contenedor.stack.add_widget(ButtonMain(texto = 'Editar Filtros',on_press=self.editarFiltros))
                 self.contenedor.stack.add_widget(ButtonMain(texto = 'Limpiar Filtros',on_press=self.limpiar))
@@ -267,7 +242,6 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.stack.clear_widgets()
                     self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
                     self.contenedor.stack.title.add_widget(ToolbarText("Estadísticas"))
-                    #self.subTitle.add_widget(self.contenedor.stack.title)
                     self.contenedor.box = EstBox()
                     self.contenedor.box.add_widget(Title("Filtro"))
                     if self.filtroCalc:
@@ -288,20 +262,24 @@ class DatabaseGUI(BoxLayout):
                     self.subBoton.add_widget(ButtonAccept(texto = 'Volver',on_press=self.usarFiltro))
               
                 else:
-                    #self.subTitle.add_widget(Separador())
+                    self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
+                    self.contenedor.stack.add_widget(TextInput(text='',size_hint_y=None,height=45))
+                    self.contenedor.stack.add_widget(Separador())
+                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.usarFiltro))
+                    self.contenedor.stack.add_widget(Separador2())
+                    
                     if self.editar:
                         self.contenedor.stack.add_widget(BotonOpcion(text = 'Editar',background_normal='',background_down='gris.png',background_color =(0.8,0.75, 0, 1),on_press=self.abEdit))
                     else:
                         self.contenedor.stack.add_widget(BotonOpcion(text = 'Ver',background_normal='',background_down='gris.png',background_color =(0, 0.6, 0.44, 1),on_press=self.abEdit))
                     self.contenedor.stack.add_widget(Separador())               
 
-                    #self.contenedor.stack.add_widget(ToolbarText("Campo"))
                     cont = -1
                     self.infoTextBo=[]
                     if self.select:
                         for lista in self.lista.information:
                             for text in lista:
-                               # self.lista.informationBox = TextInput(text=str(text),size_hint_y=None,height=70)
+                              
                                 if cont == -1:
                                     self.contenedor.stack.add_widget(Title("Indice: "+str(text),bold = True))
                                 else:
@@ -311,7 +289,7 @@ class DatabaseGUI(BoxLayout):
                                     else:
                                         self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0.2)))
                                     self.contenedor.stack.add_widget(self.infoTextBox[len(self.infoTextBox)-1])
-                                    # self.contenedor.stack.add_widget(Separador())
+                                   
                                     if self.editar:
                                         self.contenedor.stack.add_widget(Separador())
                                         self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
@@ -320,12 +298,12 @@ class DatabaseGUI(BoxLayout):
                         self.contenedor.stack.add_widget(Title("Nombre de la base: "+table))
                         self.contenedor.stack.add_widget(Separador())
                         self.contenedor.stack.add_widget(Title("Cantidad de elementos: "+str(self.lista.totalDatos)))       
-                                # self. 
+                                 
         self.contenedor.add_widget(self.contenedor.stack)
 
     def editarCampo(self,obj):
         print('dale')
-        filtro = "UPDATE CV SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
+        filtro = "UPDATE "+table+" SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
         c.execute(filtro)
         miConexion.commit()
         self.buscar()
@@ -355,7 +333,6 @@ class DatabaseGUI(BoxLayout):
 
     def abEdit(self,obj):
         self.editar = not self.editar
-        #self.editPDF = not self.editPDF
         self.lista.editar = not self.lista.editar
         if self.editar:
             obj.background_color =(0.8,0.75, 0, 1)
@@ -488,7 +465,7 @@ class DatabaseGUI(BoxLayout):
         self.pagebarBuilder(0,True)
                 
     def nuevoInicio(self,obj):
-        self.menuTitle=2
+        self.menuTitle=3
         self.menubarBuilder()
         self.newEst = False
 
@@ -507,7 +484,7 @@ class DatabaseGUI(BoxLayout):
         self.contenedor.stack.scroll_y=1
 
     def nuevoInicio2(self,obj):
-        self.menuTitle=2
+        self.menuTitle=3
         self.menubarBuilder()
         self.newEst = False
 
@@ -525,7 +502,7 @@ class DatabaseGUI(BoxLayout):
         self.contenedor.stack.scroll_y=1
 
     def nuevoEst(self,obj):
-        self.menuTitle=3
+        self.menuTitle=4
         self.menubarBuilder()
         self.nuevoFiltro = False
         self.menuFiltro = False
@@ -579,11 +556,11 @@ class DatabaseGUI(BoxLayout):
                     for y in x:
                         self.lista.totalDatos=y
                         self.lista.totalDatos2=y
-        if self.menuTitle==3:
+        if self.menuTitle==4:
             self.volverMenu(obj)
         else:
             self.toolbarBuilder()
-        self.menuTitle=3
+        self.menuTitle=4
         self.menubarBuilder()
             
     def aceptarCambios(self,obj):
@@ -609,7 +586,7 @@ class DatabaseGUI(BoxLayout):
             self.toolbarBuilder()
 
     def nuevoCampo(self,obj):
-        self.menuTitle=1
+        self.menuTitle=2
         self.menubarBuilder()
         self.cambiarCampo = True
         self.nuevoFiltro = False
@@ -642,7 +619,7 @@ class DataViewer(ScrollView):
         self.filtroWhere = ''
         self.filtroSelect = ''
         self.calcEst = ''
-        for row in c.execute('SELECT * From CV'):
+        for row in c.execute('SELECT * From '+table):
             self.totalDatos += 1
         self.total = self.totalDatos
         self.totalDatos2 = self.totalDatos
@@ -650,7 +627,6 @@ class DataViewer(ScrollView):
         self.campo=''
         self.calculando = ''
         self.information = []
-        #self.informationBox = TextInput()
         self.select = 0
         self.listEst=[]
         self.build(entrada =entrada,imagen=True,pag=0)
@@ -679,7 +655,7 @@ class DataViewer(ScrollView):
                 self.filtroSelect += ", "
             n += 1
             
-        self.filtroWhere =" FROM CV"
+        self.filtroWhere =" FROM "+table
         n=0
         primero=True
         for elemento in busqueda:
@@ -735,22 +711,13 @@ class DataViewer(ScrollView):
             
         self.add_widget(self.contenedor)
 
-    # def select(self,fila):
-    #     # self.selectRow = not self.selectRow
-    #     # if self.selectRow:
-    #     #     self.filas[fila]
-    #     # else
-    #     self.filas[0].canvas.Color.rgb = (0,0,0)
-
     #Función para ignorar tildes
     def sinTilde(self,word1,word2):
         text = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(`"+str(word1)+"`),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N') LIKE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER('%"+str(word2)+"%'),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N')"
         return text
     
     def info(self,obj):
-        # print(obj.g)
-        # print('obj.text')
-        #self.information = obj.g
+        
         self.id = obj.ID
         self.campo = obj.col
         self.filas[obj.num].dark = 0.2 - self.filas[obj.num].dark
@@ -762,7 +729,7 @@ class DataViewer(ScrollView):
         if self.filas[obj.num].dark == 0.2:
             aplicacion.pantalla.select = True
             self.information = []
-            for row in c.execute('SELECT * From CV WHERE `' + self.index + "` = '" + str(self.id) +"'"):
+            for row in c.execute('SELECT * From '+table+' WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
         else:
             aplicacion.pantalla.select = False
@@ -800,7 +767,7 @@ class DataViewer(ScrollView):
         if filtroAct:
             filtro = "SELECT `"+ str(text) +"` " + self.filtroWhere
         else:
-            filtro = "SELECT `"+ str(text) +"` FROM CV"
+            filtro = "SELECT `"+ str(text) +"` FROM "+table
         
         data = pd.read_sql_query(filtro, miConexion)
         data=pd.unique(data[str(text)])
@@ -830,7 +797,7 @@ class DataViewer(ScrollView):
                 if filtroAct:
                     filtro2 = "SELECT COUNT(`"+ str(text) +"`) "+self.filtroWhere
                 else:
-                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM CV WHERE "
+                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM "+table+" WHERE "
                 primero = True
                 for palabra in diferente:
                     palabras += str(palabra)+" "
@@ -853,7 +820,7 @@ class DataViewer(ScrollView):
 
     #Función para agregar PDF
     def insertPdf(self,fileName,idNum):
-        filtro = "UPDATE CV SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
+        filtro = "UPDATE "+table+" SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
         c.execute(filtro)
         miConexion.commit()
 
@@ -900,6 +867,9 @@ class TitlePag(BoxLayout):
 
 #Separadores y contenedores varios
 class Separador2(BoxLayout):
+    pass
+
+class SeparadorH(BoxLayout):
     pass
 
 class ButtonOption(ButtonBehavior,BoxLayout):
@@ -967,11 +937,14 @@ class FilaTitulo(BoxLayout):
 
 class ToolbarTitle(BoxLayout):
     pass
-    #g = StringProperty()
-    # def __init__(self,r=16,**kwargs):
-    #     super(ToolbarTitle, self).__init__(**kwargs)
-        
-      #  self.g = texto
+
+class ToolbarTitleText(BoxLayout):
+    g = StringProperty()
+    r = NumericProperty()
+    def __init__(self,texto,r=16,**kwargs):
+        super(ToolbarTitleText, self).__init__(**kwargs)
+        self.g = texto
+        self.r = r
 
 class ToolbarText(ButtonBehavior,BoxLayout):
     g = StringProperty()
@@ -1053,7 +1026,7 @@ class campoBD2(BoxLayout):
     #     aplicacion.pantalla.editPDF = True
     #     aplicacion.pantalla.toolbarBuilder()
     def delete(self):
-        filtro = "UPDATE CV SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
+        filtro = "UPDATE "+table+" SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
         c.execute(filtro)
         miConexion.commit()
         aplicacion.buildList()
@@ -1153,14 +1126,14 @@ Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGU
 
 if __name__ == '__main__': #Función principal
 
-    table = "CV"
+    table = "BaseCV"
     path = "./cv_acosta.xlsx"
     xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
     df = pd.read_excel(path) #Se lee el documento de excel  
     df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
     c = miConexion.cursor()
-    c.execute('ALTER TABLE CV ADD PDF TEXT')
+    c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
     pathFile = ''    
     SubiendoArchivo = False
     aplicacion = DatabaseGUIApp() #Se crea un objeto con la aplicación
