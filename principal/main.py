@@ -1127,7 +1127,7 @@ Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGU
 if __name__ == '__main__': #Función principal
 
     table = "BaseCV"
-    path = "./cv_acosta.xlsx"
+    path = "./Respuestas.xlsx"
     xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
     df = pd.read_excel(path) #Se lee el documento de excel  
