@@ -18,6 +18,7 @@ import webbrowser
 import math
 from operator import itemgetter
 from startMenu import StartMenu
+from dataViewer import DataViewer
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -44,6 +45,50 @@ Builder.load_file('design.kv')
 SubiendoArchivo = False
 
 '''
+====================
+Aplicación principal
+====================
+Clase que define la aplicación principal
+'''
+class DatabaseGUIApp(App): #Aplicación principal    
+    def __init__(self,base):
+        super(DatabaseGUIApp, self).__init__()
+        title = 'Plataforma'
+
+    def build(self):
+        Window.bind(on_dropfile=self._on_file_drop)
+        self.SubiendoArchivo = False
+        self.pantalla = DatabaseGUI(base=c)
+        self.archivo = ''
+        self.nombreArchivo=''
+        self.agregar=True
+        self.pag = 0
+        return self.pantalla
+
+    #Función que se ejecuta al arrastrar un archivo a la ventana
+    def _on_file_drop(self, window, file_path):
+        if self.SubiendoArchivo:
+            self.agregar=True
+            self.nombreArchivo = "./pdf/" + str(time.time()) + ".pdf"
+            self.SubiendoArchivo = False
+            shutil.copy(file_path,self.nombreArchivo)
+            print(self.pag)
+            self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo)
+            self.pantalla.lista.reset()
+            self.pantalla.lista.build(entrada=self.pantalla.campos,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+    
+    def buildList(self):
+        self.pantalla.lista.reset()
+        self.pantalla.lista.build(entrada=self.pantalla.campos,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
+    
+
+    def on_pause(self):
+        return True
+
+    def on_resume(self):
+        pass
+
+'''
 ================
 Widget principal
 ================
@@ -51,10 +96,11 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseGUI(BoxLayout): 
-    def __init__(self):
+    def __init__(self,base):
         super(DatabaseGUI, self).__init__()
         self.menu = StartMenu(self)
         self.add_widget(self.menu)
+        self.base = base
 
     #Constructor de la ventana principal
     def build(self,obj):
@@ -74,11 +120,13 @@ class DatabaseGUI(BoxLayout):
         self.toolbar = Toolbar()
         self.contenedor = ToolbarSub() 
         self.listaFiltros =[]
+        self.listaFiltros2 =[]
         self.filaTitulo = FilaTitulo()
         self.pagina = FilaPag()
         self.camposOpcion = []
         self.filtrosOpcion = []
         self.filtros = []
+        self.filtros2 = []
         self.campos = []
         self.nombres = list(map(lambda x: x[0], c.execute('select * from '+table).description))
         self.index = self.nombres[0]
@@ -92,7 +140,7 @@ class DatabaseGUI(BoxLayout):
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(index=self.index,entrada=self.campos,pag = self.numPag)
+        self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = table,aplicacion=aplicacion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
@@ -109,7 +157,7 @@ class DatabaseGUI(BoxLayout):
         self.barraMenu = MenuBar()
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Ver',on_press=self.volverMenu))
-        self.submitOptions.append(ToolbarText(texto = 'Editar'))
+        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
@@ -128,6 +176,7 @@ class DatabaseGUI(BoxLayout):
 
         self.toolbarBuilder()
 
+    #Función que esconde la barra de herramientas
     def toolbarHide(self,obj): 
         self.contenedor.show = not self.contenedor.show
         self.toolbar.show = not self.toolbar.show
@@ -148,12 +197,10 @@ class DatabaseGUI(BoxLayout):
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
                 option.main = True
-                #self.MenuMain.add_widget(option)
             contOpt = contOpt + 1
 
         self.barraMenu.add_widget(self.MenuMain)
-        self.barraMenu.add_widget(SeparadorH())
-        #self.barraMenu.add_widget(ToolbarShow(on_press=self.toolbarHide))        
+        self.barraMenu.add_widget(SeparadorH())     
         contOpt = 0
         for option in self.submitOptions:
             self.barraMenu.add_widget(option)
@@ -161,6 +208,7 @@ class DatabaseGUI(BoxLayout):
                 option.main = False
             contOpt = contOpt + 1        
  
+    #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
         self.contenedor.scroll_y=1
         self.contenedor.clear_widgets()
@@ -208,8 +256,7 @@ class DatabaseGUI(BoxLayout):
                 self.contenedor.stack.add_widget(Separador2())
                 self.subBoton.add_widget(ButtonAccept(texto = 'Aceptar',on_press=self.aceptarCambios))
                 
-        else:
-            
+        else:            
             if self.menuFiltro:                
                 self.contenedor.stack.clear_widgets()
                 self.filtros = []
@@ -263,16 +310,11 @@ class DatabaseGUI(BoxLayout):
               
                 else:
                     self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
-                    self.contenedor.stack.add_widget(TextInput(text='',size_hint_y=None,height=45))
+                    self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
+                    self.contenedor.stack.add_widget(self.busqueda_gen)
                     self.contenedor.stack.add_widget(Separador())
-                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.usarFiltro))
-                    self.contenedor.stack.add_widget(Separador2())
-                    
-                    if self.editar:
-                        self.contenedor.stack.add_widget(BotonOpcion(text = 'Editar',background_normal='',background_down='gris.png',background_color =(0.8,0.75, 0, 1),on_press=self.abEdit))
-                    else:
-                        self.contenedor.stack.add_widget(BotonOpcion(text = 'Ver',background_normal='',background_down='gris.png',background_color =(0, 0.6, 0.44, 1),on_press=self.abEdit))
-                    self.contenedor.stack.add_widget(Separador())               
+                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
+                    self.contenedor.stack.add_widget(Separador2())\            
 
                     cont = -1
                     self.infoTextBo=[]
@@ -294,29 +336,43 @@ class DatabaseGUI(BoxLayout):
                                         self.contenedor.stack.add_widget(Separador())
                                         self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
                                 cont = cont + 1
-                    else:
-                        self.contenedor.stack.add_widget(Title("Nombre de la base: "+table))
-                        self.contenedor.stack.add_widget(Separador())
-                        self.contenedor.stack.add_widget(Title("Cantidad de elementos: "+str(self.lista.totalDatos)))       
-                                 
+
         self.contenedor.add_widget(self.contenedor.stack)
 
-    def editarCampo(self,obj):
-        print('dale')
+    def editarCampo(self,obj): #Función que cambia las columnas que se muestran*
         filtro = "UPDATE "+table+" SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
         c.execute(filtro)
         miConexion.commit()
         self.buscar()
 
-    def volverMenu(self,obj):
+    def volverMenu(self,obj): #Función de la opción del menu ver
         self.menuTitle=0
+        self.menubarBuilder()
+        self.editar = False
+        self.nuevoFiltro = False
+        self.menuFiltro = False
+        self.cambiarCampo = False
+        self.estadisticas = False
+        self.nuevoFiltro = False
+        self.newEst = False 
+        self.lista.editar = False
+        self.lista.reset()
+        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.toolbarBuilder()
+
+    def editarMenu(self,obj): #Función de la opción del menu editar
+        self.menuTitle=1
+        self.editar = True
         self.menubarBuilder()
         self.nuevoFiltro = False
         self.menuFiltro = False
         self.cambiarCampo = False
         self.estadisticas = False
         self.nuevoFiltro = False
-        self.newEst = False        
+        self.newEst = False
+        self.lista.editar = True
+        self.lista.reset()
+        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbarBuilder()
 
     #Habilitar la opción de usar filtro en estadistica
@@ -330,19 +386,6 @@ class DatabaseGUI(BoxLayout):
             obj.background_color =(0.8,0, 0.1, 1)
             self.botonFiltro.disabled = True
             obj.text = "No usar"
-
-    def abEdit(self,obj):
-        self.editar = not self.editar
-        self.lista.editar = not self.lista.editar
-        if self.editar:
-            obj.background_color =(0.8,0.75, 0, 1)
-            obj.text = "Editar"
-        else:
-            obj.background_color =(0, 0.6, 0.44, 1)
-            obj.text = "Ver"
-        self.lista.reset()
-        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
-        self.toolbarBuilder()
 
     def editarDatos(self,obj): #Escoger dato de referencia para clacular estadisticas
         self.newEst = True
@@ -452,7 +495,7 @@ class DatabaseGUI(BoxLayout):
                             self.lista.totalDatos=y
         self.tablas = False
 
-    def buscar(self,obj=None):
+    def buscar(self,obj=None): #Función que filtra la base
         self.lista.reset()
         self.tablas = False
         self.numPag=0
@@ -463,6 +506,28 @@ class DatabaseGUI(BoxLayout):
                         self.lista.totalDatos=y
                         self.lista.totalDatos2=y
         self.pagebarBuilder(0,True)
+
+    def buscar_gen(self,obj=None): #Función que filtra la base de forma general (busca en todos los campos)
+        self.listaFiltros2 = self.listaFiltros
+        self.filtros2 = self.filtros
+        self.listaFiltros = []
+        for field in df:
+            self.listaFiltros.append(str(field))
+        self.lista.reset()
+        self.tablas = False
+        self.numPag=0
+        self.filtros = []
+        for elemento in self.listaFiltros:
+            self.filtros.append(self.busqueda_gen)
+        self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros,general=True)
+        filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
+        for x in c.execute(filtro):
+                    for y in x:
+                        self.lista.totalDatos=y
+                        self.lista.totalDatos2=y
+        self.pagebarBuilder(0,True)
+        self.listaFiltros = self.listaFiltros2
+        self.filtros = self.filtros2
                 
     def nuevoInicio(self,obj):
         self.menuTitle=3
@@ -536,9 +601,7 @@ class DatabaseGUI(BoxLayout):
                     obj.c = not obj.c
                 contTitulo += 1 
 
-    def usarFiltro(self,obj=None):
-        
-        
+    def usarFiltro(self,obj=None):       
         self.lista.reset()
         self.tablas = False
         self.numPag=0
@@ -603,229 +666,11 @@ def on_enter(instance, value):
     print('User pressed enter in', instance)
 
 '''
-===================
-Widgets secundarios
-===================
-Diferentes widgets que complementan la ventana principal y conforman la interfaz gráfica
-'''    
-#Widget que muestra los datos solicitados de la base de datos
-class DataViewer(ScrollView):
-    end = BooleanProperty()
-    def __init__(self,index,entrada,pag=0):
-        super(DataViewer, self).__init__()
-        self.editar=False
-        self.index = index
-        self.totalDatos = 0
-        self.filtroWhere = ''
-        self.filtroSelect = ''
-        self.calcEst = ''
-        for row in c.execute('SELECT * From '+table):
-            self.totalDatos += 1
-        self.total = self.totalDatos
-        self.totalDatos2 = self.totalDatos
-        self.id = 0
-        self.campo=''
-        self.calculando = ''
-        self.information = []
-        self.select = 0
-        self.listEst=[]
-        self.build(entrada =entrada,imagen=True,pag=0)
-
-    #Constructor del data viewer
-    def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False):
-        self.scroll_y=1
-        aplicacion.pantalla.select=False
-        aplicacion.agregar = True
-        self.contenedor=DataViewerContainer()
-        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        self.filas=[]
-        PDF = (False,0)
-        color = True
-        cont = 0
-        
-        self.filtroSelect = "SELECT `"+ self.index +"`"
-        n = 0
-        for selectField in entrada:
-            if (n == 0):
-                self.filtroSelect += ", "
-            self.filtroSelect += "`" + str(selectField) + "`"
-            if (selectField == 'PDF'):
-                PDF = (True,n)
-            if(selectField != entrada[len(entrada)-1]):
-                self.filtroSelect += ", "
-            n += 1
-            
-        self.filtroWhere =" FROM "+table
-        n=0
-        primero=True
-        for elemento in busqueda:
-            if elemento.text.split() != []:
-                if primero:
-                    self.filtroWhere +=" WHERE "
-
-                for palabra in elemento.text.split():
-                    if primero:
-                        primero = False
-                        self.filtroWhere += self.sinTilde(str(filtros[n]),str(palabra))
-                        
-                    else:
-                        self.filtroWhere +="and "+self.sinTilde(str(filtros[n]),str(palabra))
-            n+=1
-        filtro = self.filtroSelect + self.filtroWhere + " LIMIT 50 OFFSET " + str(pag*50)
-        color = False
-        
-        for row in c.execute(filtro):
-            
-            self.filas.append(Fila(color))
-            
-            columnas = 0
-            index = True 
-            for x in row:
-                if index:
-                    index = False
-                    indexID = str(x)
-                else:    
-                    if isinstance(x,float):
-                        x=int(x)
-                    if PDF[0] and columnas == PDF[1]:
-                        if self.editar:
-                            if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,pag=pag,editar=True,index=self.index))
-                            else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,str(x),pag=pag,editar=True,index=self.index))
-                        else:
-                            if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,pag=pag,index=self.index))
-                            else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,str(x),pag=pag,index=self.index))
-                        
-                    else:
-                        self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),cont,indexID,entrada[columnas],on_press=self.info))
-                    columnas += 1
-            color = not color
-                                
-            cont += 1
-
-        for row in self.filas:
-            self.contenedor.add_widget(row)
-            
-        self.add_widget(self.contenedor)
-
-    #Función para ignorar tildes
-    def sinTilde(self,word1,word2):
-        text = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(`"+str(word1)+"`),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N') LIKE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER('%"+str(word2)+"%'),'á','a'), 'é','e'),'í','i'),'ó','o'),'ú','u'),'ñ','n'),'Á','A'), 'É','E'),'Í','I'),'Ó','O'),'Ú','U'),'Ñ','N')"
-        return text
-    
-    def info(self,obj):
-        
-        self.id = obj.ID
-        self.campo = obj.col
-        self.filas[obj.num].dark = 0.2 - self.filas[obj.num].dark
-        self.filas[obj.num].canvas.ask_update()
-        if self.select != obj.num:
-            self.filas[self.select].dark = 0
-            self.filas[self.select].canvas.ask_update()
-        self.select = obj.num
-        if self.filas[obj.num].dark == 0.2:
-            aplicacion.pantalla.select = True
-            self.information = []
-            for row in c.execute('SELECT * From '+table+' WHERE `' + self.index + "` = '" + str(self.id) +"'"):
-                self.information.append(row)
-        else:
-            aplicacion.pantalla.select = False
-        aplicacion.pantalla.toolbarBuilder()
-
-    def calcAct(self,pag=0):#Actualizar la página del calculo de estadísticas
-        aplicacion.pantalla.select=False
-        self.scroll_y=1
-        self.contenedor=DataViewerContainer()
-        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        self.filas=[]
-        color = False
-        top = len(self.listEst)
-        if top > 50*(pag+1):
-            top = 50*(pag+1)
-        num = 0
-        for item in sorted(self.listEst,
-         key=itemgetter(1),reverse=True)[50*pag:top]:
-            self.filas.append(Fila(color))
-            for element in item:
-                self.filas[len(self.filas)-1].add_widget(campoBD1(str(element),num,on_press=self.info))
-            color = not color
-            num = num +1
-        for row in self.filas:
-            self.contenedor.add_widget(row)
-        self.add_widget(self.contenedor)
-
-    def calc(self,text,filtroAct,pag=0): #Realizar el calculo de la estadística según las opciones escogidas
-        aplicacion.pantalla.select=False
-        self.scroll_y=1
-        self.calculando = text
-        self.contenedor=DataViewerContainer()
-        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        self.filas=[]
-        if filtroAct:
-            filtro = "SELECT `"+ str(text) +"` " + self.filtroWhere
-        else:
-            filtro = "SELECT `"+ str(text) +"` FROM "+table
-        
-        data = pd.read_sql_query(filtro, miConexion)
-        data=pd.unique(data[str(text)])
-        data2 =[]
-        data3 =[]
-        dataCount=0
-        for palabra in data:
-            if palabra != None:
-                
-                a,b = 'áéíóúüñÁÉÍÓÚÜÑ','aeiouunAEIOUUN'
-                trans = str.maketrans(a,b)
-                data2.append(" ".join(((str(palabra).upper()).translate(trans)).split()))
-            dataCount+=1
-            
-        for palabra in list(set(data2)):
-            data3.append(palabra.split())
-
-        self.contenedor=DataViewerContainer()
-        self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
-        self.filas=[]
- 
-        self.listEst=[]
-        palabras=""
-        self.totalDatos=len(data3)
-        for diferente in data3:
-            if diferente != None:
-                if filtroAct:
-                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) "+self.filtroWhere
-                else:
-                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM "+table+" WHERE "
-                primero = True
-                for palabra in diferente:
-                    palabras += str(palabra)+" "
-                    if primero:
-                        primero=False
-                        if filtroAct:
-                            filtro2 += "and " + self.sinTilde(str(text),str(palabra)) 
-                        else:
-                            filtro2 += self.sinTilde(str(text),str(palabra)) 
-                    else:                        
-                        filtro2 += "and " + self.sinTilde(str(text),str(palabra)) 
-                for x in c.execute(filtro2):
-                    for y in x:
-                        if filtroAct:
-                            self.listEst.append((palabras,y,str(round((y*100) /self.totalDatos2,2))+"%")) 
-                        else:
-                            self.listEst.append((palabras,y,str(round((y*100) /self.total,2))+"%"))
-                palabras=""
-        self.calcAct(pag)
-
-    #Función para agregar PDF
-    def insertPdf(self,fileName,idNum):
-        filtro = "UPDATE "+table+" SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
-        c.execute(filtro)
-        miConexion.commit()
-
-    def reset(self):
-       self.clear_widgets()
+=======================
+Widgets complementarios
+=======================
+Clases separadores, botones y contenedores varios
+'''
 
 #Widget que define los cuadros con los titulos de columna de las bases de datos
 class TitleField(BoxLayout):
@@ -865,7 +710,6 @@ class TitlePag(BoxLayout):
         super(TitlePag, self).__init__()
         self.g = texto
 
-#Separadores y contenedores varios
 class Separador2(BoxLayout):
     pass
 
@@ -898,27 +742,17 @@ class ButtonMain2(ButtonBehavior,BoxLayout):
 
 class ButtonAccept(ButtonBehavior,BoxLayout):
     g = StringProperty()
-   # c = BooleanProperty()
     def __init__(self,texto,title = '',input=0,**kwargs):
         super(ButtonAccept, self).__init__(**kwargs)
         self.g = texto
         self.input = input
         self.title = title
- #       self.c = select
 
 class Separador(BoxLayout):
     pass
 
 class Divisor(BoxLayout):
     pass
-
-class Fila(BoxLayout):
-    color = BooleanProperty()
-    dark = NumericProperty()
-    def __init__(self,colorCampo):
-        super(Fila, self).__init__()
-        self.color=colorCampo
-        self.dark =0
 
 class EstBox(BoxLayout):
     pass
@@ -974,18 +808,6 @@ class Info(BoxLayout):
         super(Info, self).__init__()
         self.g = texto
 
-class campoBD1(ButtonBehavior,BoxLayout):
-    ID = NumericProperty()
-    g = StringProperty()
-    col = StringProperty()
-    num = NumericProperty()
-    def __init__(self,texto,num,idNum=0,campo='',**kwargs):
-        super(campoBD1, self).__init__(**kwargs)
-        self.g = texto
-        self.col = campo
-        self.ID = idNum
-        self.num = num
-
 class OcultarBarra(FloatLayout):
     pass
 
@@ -999,51 +821,11 @@ class ColorBox(BoxLayout):
         self.g = g
         self.b = b
 
-class campoBD2(BoxLayout):
-    pdf = BooleanProperty()
-    edit = BooleanProperty()
-    ID = NumericProperty()
-    pag = NumericProperty()
-    def __init__(self,pdf,idNum,path='',pag=0,editar=False,index = 'index'):
-        super(campoBD2, self).__init__()
-        self.pdf = pdf
-        self.ID = idNum
-        self.g = path
-        self.pag = pag
-        self.index = index
-        self.edit = editar
-      
-    def agregarPDF(self):
-        if (aplicacion.agregar):
-            aplicacion.archivo = self.ID
-            aplicacion.pag = self.pag
-            aplicacion.SubiendoArchivo = True
-            self.clear_widgets()
-            self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
-            aplicacion.agregar=False
-
-    # def editar(self):
-    #     aplicacion.pantalla.editPDF = True
-    #     aplicacion.pantalla.toolbarBuilder()
-    def delete(self):
-        filtro = "UPDATE "+table+" SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
-        c.execute(filtro)
-        miConexion.commit()
-        aplicacion.buildList()
-
-    def pasar(self):
-        pass
-
-    def verPDF(self):
-        path = self.g
-        webbrowser.open_new(path)
-
 class Toolbar(BoxLayout):
     show = BooleanProperty()
     def __init__(self):
         super(Toolbar, self).__init__()
         self.show=True
-
 
 class ToolbarSub(ScrollView):
     show = BooleanProperty()
@@ -1055,7 +837,6 @@ class ToolbarSub(ScrollView):
     def build(self):
         self.stack=ToolbarContaner()
         self.stack.bind(minimum_height=self.stack.setter('height'))
-        
 
 class ToolbarContaner(StackLayout):
     pass
@@ -1064,57 +845,11 @@ class ToolbarShow(ButtonBehavior,Image,BoxLayout):
      def __init__(self,**kwargs):
         super(ToolbarShow, self).__init__(**kwargs)
 
-class DataViewerContainer(StackLayout):
-    pass
-
 class MenuInicial(FloatLayout):
     pass    
 
 class Cuadro(BoxLayout):
     pass
-
-'''
-====================
-Aplicación principal
-====================
-Clase que define la aplicación principal
-'''
-class DatabaseGUIApp(App): #Aplicación principal
-    title = 'Plataforma'
-
-    def build(self):
-        Window.bind(on_dropfile=self._on_file_drop)
-        self.SubiendoArchivo = False
-        self.pantalla = DatabaseGUI()
-        self.archivo = ''
-        self.nombreArchivo=''
-        self.agregar=True
-        self.pag = 0
-        return self.pantalla
-
-    #Función que se ejecuta al arrastrar un archivo a la ventana
-    def _on_file_drop(self, window, file_path):
-        if self.SubiendoArchivo:
-            self.agregar=True
-            self.nombreArchivo = "./pdf/" + str(time.time()) + ".pdf"
-            self.SubiendoArchivo = False
-            shutil.copy(file_path,self.nombreArchivo)
-            print(self.pag)
-            self.pantalla.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo)
-            self.pantalla.lista.reset()
-            self.pantalla.lista.build(entrada=self.pantalla.campos,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
-    
-    def buildList(self):
-        self.pantalla.lista.reset()
-        self.pantalla.lista.build(entrada=self.pantalla.campos,pag=self.pag,filtros= self.pantalla.listaFiltros,busqueda=self.pantalla.filtros)
-    
-
-    def on_pause(self):
-        return True
-
-    def on_resume(self):
-        pass
-
 
 '''
 =================
@@ -1127,7 +862,7 @@ Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGU
 if __name__ == '__main__': #Función principal
 
     table = "BaseCV"
-    path = "./Respuestas.xlsx"
+    path = "./cv_acosta.xlsx"
     xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
     df = pd.read_excel(path) #Se lee el documento de excel  
@@ -1136,7 +871,7 @@ if __name__ == '__main__': #Función principal
     c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
     pathFile = ''    
     SubiendoArchivo = False
-    aplicacion = DatabaseGUIApp() #Se crea un objeto con la aplicación
+    aplicacion = DatabaseGUIApp(base=c) #Se crea un objeto con la aplicación
     aplicacion.run() #Se ejecuta la aplicación
     c.close
     miConexion.close
