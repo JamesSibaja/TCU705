@@ -215,6 +215,8 @@ class DatabaseGUI(BoxLayout):
         self.subBoton.clear_widgets()
         self.contenedor.build()
         if self.nuevoFiltro or self.cambiarCampo or self.newEst:
+            #Si se encuentra en el menú de columnas o se abre por primera vez el
+            #menú de estadistica o el de filtro
             contTexto =0
             for filtro in self.filtros:
                 self.palabrasBuscadas.update({self.listaFiltros[contTexto]:filtro.text})
@@ -257,6 +259,7 @@ class DatabaseGUI(BoxLayout):
                 self.subBoton.add_widget(ButtonAccept(texto = 'Aceptar',on_press=self.aceptarCambios))
                 
         else:            
+            #Si se encuentra en el menú de filtros
             if self.menuFiltro:                
                 self.contenedor.stack.clear_widgets()
                 self.filtros = []
@@ -285,6 +288,7 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.stack.add_widget(Separador())
                     self.subBoton.add_widget(self.submit)
             else:
+                #Si se encuentra en el menú de estadistica
                 if self.estadisticas:
                     self.contenedor.stack.clear_widgets()
                     self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
@@ -309,12 +313,13 @@ class DatabaseGUI(BoxLayout):
                     self.subBoton.add_widget(ButtonAccept(texto = 'Volver',on_press=self.usarFiltro))
               
                 else:
+                    #Si se encuentra en el menú de ver o el de editar
                     self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
                     self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
                     self.contenedor.stack.add_widget(self.busqueda_gen)
                     self.contenedor.stack.add_widget(Separador())
                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                    self.contenedor.stack.add_widget(Separador2())\            
+                    self.contenedor.stack.add_widget(Separador2())            
 
                     cont = -1
                     self.infoTextBo=[]
@@ -672,48 +677,10 @@ Widgets complementarios
 Clases separadores, botones y contenedores varios
 '''
 
-#Widget que define los cuadros con los titulos de columna de las bases de datos
-class TitleField(BoxLayout):
-    g = StringProperty()
-    def __init__(self,texto):
-        super(TitleField, self).__init__()
-        self.g = texto
-
-#Widget que define los cuadros con los titulos de los filtros
-class TitleFilter(BoxLayout):
-    g = StringProperty()
-    filtro = BooleanProperty()
-    def __init__(self,texto,filtro = True):
-        super(TitleFilter, self).__init__()
-        self.g = texto
-        self.filtro =filtro
-
-class Title(BoxLayout):
-    g = StringProperty()
-    bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title, self).__init__()
-        self.g = texto
-        self.bold = bold
-
-class Color(BoxLayout):
-    g = StringProperty()
-    color = BooleanProperty()
-    def __init__(self,texto,color=True):
-        super(Color, self).__init__()
-        self.g = texto
-        self.color = color
-
-class TitlePag(BoxLayout):
-    g = StringProperty()
-    def __init__(self,texto):
-        super(TitlePag, self).__init__()
-        self.g = texto
-
-class Separador2(BoxLayout):
+class BotonOpcion(Button):
     pass
 
-class SeparadorH(BoxLayout):
+class BotonOpcion2(Button):
     pass
 
 class ButtonOption(ButtonBehavior,BoxLayout):
@@ -747,9 +714,25 @@ class ButtonAccept(ButtonBehavior,BoxLayout):
         self.g = texto
         self.input = input
         self.title = title
+class ColorBox(BoxLayout):
+    r = NumericProperty()
+    g = NumericProperty()
+    b = NumericProperty()
+    def __init__(self,r=0,g=0,b=0):
+        super(ColorBox, self).__init__()
+        self.r = r
+        self.g = g
+        self.b = b
 
-class Separador(BoxLayout):
+class Cuadro(BoxLayout):
     pass
+class Color(BoxLayout):
+    g = StringProperty()
+    color = BooleanProperty()
+    def __init__(self,texto,color=True):
+        super(Color, self).__init__()
+        self.g = texto
+        self.color = color
 
 class Divisor(BoxLayout):
     pass
@@ -768,6 +751,60 @@ class FilaTitulo(BoxLayout):
     def __init__(self,r=20):
         super(FilaTitulo, self).__init__()
         self.r = r
+
+class Fila3(BoxLayout):
+    pass
+
+class Info(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(Info, self).__init__()
+        self.g = texto
+
+class MenuBar(BoxLayout):
+    pass
+
+class OcultarBarra(FloatLayout):
+    pass
+
+class Separador2(BoxLayout):
+    pass
+
+class SeparadorH(BoxLayout):
+    pass
+
+class Separador(BoxLayout):
+    pass
+
+#Widget que define los cuadros con los titulos de columna de las bases de datos
+class TitleField(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(TitleField, self).__init__()
+        self.g = texto
+
+#Widget que define los cuadros con los titulos de los filtros
+class TitleFilter(BoxLayout):
+    g = StringProperty()
+    filtro = BooleanProperty()
+    def __init__(self,texto,filtro = True):
+        super(TitleFilter, self).__init__()
+        self.g = texto
+        self.filtro =filtro
+
+class Title(BoxLayout):
+    g = StringProperty()
+    bold = BooleanProperty()
+    def __init__(self,texto,bold=False,filtro = True):
+        super(Title, self).__init__()
+        self.g = texto
+        self.bold = bold
+
+class TitlePag(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(TitlePag, self).__init__()
+        self.g = texto
 
 class ToolbarTitle(BoxLayout):
     pass
@@ -789,37 +826,6 @@ class ToolbarText(ButtonBehavior,BoxLayout):
         self.g = texto
         self.main = main
         self.r = r
-
-class Fila3(BoxLayout):
-    pass
-
-class MenuBar(BoxLayout):
-    pass
-
-class BotonOpcion(Button):
-    pass
-
-class BotonOpcion2(Button):
-    pass
-
-class Info(BoxLayout):
-    g = StringProperty()
-    def __init__(self,texto):
-        super(Info, self).__init__()
-        self.g = texto
-
-class OcultarBarra(FloatLayout):
-    pass
-
-class ColorBox(BoxLayout):
-    r = NumericProperty()
-    g = NumericProperty()
-    b = NumericProperty()
-    def __init__(self,r=0,g=0,b=0):
-        super(ColorBox, self).__init__()
-        self.r = r
-        self.g = g
-        self.b = b
 
 class Toolbar(BoxLayout):
     show = BooleanProperty()
@@ -845,11 +851,6 @@ class ToolbarShow(ButtonBehavior,Image,BoxLayout):
      def __init__(self,**kwargs):
         super(ToolbarShow, self).__init__(**kwargs)
 
-class MenuInicial(FloatLayout):
-    pass    
-
-class Cuadro(BoxLayout):
-    pass
 
 '''
 =================
