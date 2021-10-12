@@ -1,0 +1,581 @@
+#:import ScrollEffect  kivy.effects.scroll.ScrollEffect
+#:import Button kivy.uix.button.Button
+#:import Window kivy.core.window.Window
+#:import ceil math.ceil
+
+
+<BotonOpcion>:
+    size_hint_y: None
+    height: 30 * int(ceil((len(root.text)* 25) / Window.size[0]))
+    text_size:self.size
+    padding: (10,0)
+    halign: 'center'
+    valign:'middle'
+
+<ButtonAccept>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 27 
+
+    canvas.before:
+        Color:
+            rgb: 0.1,0.2,0.4
+        Ellipse:
+            pos: self.pos[0]+self.size[1]/2,self.pos[1]
+            size: self.size[1],self.size[1]
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]-(3*self.size[1])/2,self.pos[1]
+            size: self.size[1],self.size[1]
+            segments: 360
+        Rectangle:
+            size: self.size[0] - 2*self.size[1], self.size[1]
+            pos: self.pos[0]+(self.size[1]),self.pos[1]
+
+    Label:
+        text: root.g
+        halign:'center'
+        padding: (25,5)
+        valign:'top'
+        text_size:self.size
+        color: (1,1,1) 
+
+<ButtonMain>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 30
+
+    Label:
+        text: root.g
+        halign:'left'
+        padding: (15,5)
+        valign:'top'
+        text_size:self.size
+        color: (0.95,0.95,0.95) if root.c else (0.25,0.25,0.25,1)
+
+<ButtonMain2>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 30 
+    
+    Label:
+        text: root.g
+        halign:'center'
+        padding: (15,5)
+        bold: True
+        valign:'top'
+        text_size:self.size
+        color: (0.2,0.2,0.2)
+
+<ButtonOption>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 30 
+
+    canvas:
+        Color:
+            rgb:(0.9,0.9,0.9)  if root.c else (0.45,0.45,0.45)
+        Line:
+            points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1] 
+
+    canvas.before:
+        Color:
+            rgb:(0.15,0.15,0.15)if root.c else (0.9,0.9,0.9)
+        Rectangle:
+            size:self.size
+            pos:self.pos
+
+    Label:
+        text: root.g
+        halign:'left'
+        padding: (15,5)
+        valign:'top'
+        text_size:self.size
+        color: (0.95,0.95,0.95) if root.c else (0.45,0.45,0.45,1)
+
+<campoBD1>:
+    orientation: 'vertical'
+    padding: -2
+    size_hint: (1,1)
+    
+
+    Label:
+        text_size:self.size
+        padding: (7,7)
+        halign:'center'
+        valign:'top'
+        text: root.g
+        color: 0,0,0,1
+
+<campoBD2>:
+    orientation: 'vertical'
+    size_hint: (1,1)
+
+    AnchorLayout:
+        id:an
+        size: self.size
+        anchor_x: 'center'
+        anchor_y: 'center'
+
+        Button:
+            id: boton
+            text: ('Agregar' if root.pdf else 'Eliminar') if root.edit else ('Vacio' if root.pdf else 'Ver')
+            size_hint: (0.75, 0.5)
+            background_color: ((0.1,0.4,0.2,1)  if root.pdf else (0.5,0.2,0,1) ) if root.edit else ((0,0,0,0)  if root.pdf else (0.15,0.25,0.55,1) )
+
+            anchor_x: 'center'
+            anchor_y: 'center'
+            background_normal:''
+            background_down:'gris.png'
+            color: (1,1,1,1) if root.edit else ((0,0,0,1)  if root.pdf else (1,1,1,1) )
+            on_press: (root.agregarPDF() if root.pdf else root.delete()) if root.edit else (root.pasar() if root.pdf else root.verPDF())
+
+<Color>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint_y: None
+    height: 25 * int(ceil((len(root.g)* 50) / Window.size[0]))
+    Label:
+        text: root.g
+        bold: True
+        text_size:self.size
+        font_size:17
+        padding: (7,7)
+        halign:'left'
+        valign:'top'
+        color: (0.5,0.15,0.15,1) if root.color else (0.15,0.5,0.15,1)
+
+<ColorBox>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+    canvas:
+        Color:
+            rgb: self.r,self.g,self.b
+        Rectangle:
+            size: self.size
+            pos: self.pos
+<Contenedor>:
+    size_hint: (0.3, 1)
+    padding: 10
+    canvas:
+        Color:
+            rgb: (0, 0.30, 0.40)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<DatabaseGUI>:
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgb:0.75,0.75,0.75
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<DatabaseMenu>:
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgb:0.5,0.75,0.5
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<DataViewer>:
+    rgb:(0.72,0.72,0.72)
+    size_hint: (1,0.88)
+    effect_cls: ScrollEffect
+    do_scroll_y: True
+    bar_width: 10
+    bar_color: 0.5, 0.5, 0.5, 0.85   
+    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
+    scroll_type:  ['bars']
+
+<DataViewerContainer>:
+    size_hint_y: None
+    minimum_height: self.height
+    canvas:
+        Color:
+            rgb: (0.2, 0.35, 0.43)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Divisor>:
+    rgb:(0,0,0)
+    size_hint: (1, 1)
+    effect_cls: ScrollEffect
+    do_scroll_y: True
+    bar_width: 10
+    bar_color: 0.5, 0.5, 0.5, 0.85   
+    bar_inactive_color:  0.5, 0.5, 0.5, 0.4 
+    scroll_type:  ['bars']  
+
+<EstBox>:
+    orientation: 'vertical'
+    padding: 8
+    size_hint_y:None
+    height:95
+    canvas:
+        Color:
+            rgb: (0.9,0.9,0.9)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        
+<Fila>:
+    orientation: 'horizontal'
+    size_hint_y:None
+    height:60
+    canvas.before:
+        Color:
+            rgb: (0.83-self.dark,0.83+self.dark,0.9-self.dark) if root.color else (0.9-self.dark,0.9+self.dark,0.95-self.dark)
+        Rectangle:
+            size:self.size
+            pos:self.pos
+    canvas.after:
+        Color:
+            rgb: (0,0,0)
+        Line:
+            points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1]
+
+<FilaPag>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+    canvas.before:
+        Color:
+            rgb: 0.4,0.4,0.4
+        Ellipse:
+            pos: self.pos
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]
+            segments: 360
+            size: self.r,self.r
+        Rectangle:
+            size: self.size[0] -  self.r, self.size[1]
+            pos: self.pos[0]+(self.r/2),self.pos[1]
+        Rectangle:
+            size: self.size[0],self.size[1]- self.r/2
+            pos: self.pos[0],self.pos[1]+self.r/2
+
+<FilaTitulo>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+    canvas.before:
+        Color:
+            rgb: 0.2,0.3,0.55
+        Ellipse:
+            pos: self.pos[0],self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Rectangle:
+            size: self.size[0] -  self.r, self.size[1]
+            pos: self.pos[0]+(self.r/2),self.pos[1]
+        Rectangle:
+            size: self.size[0], self.size[1]-self.r/2
+            pos: self.pos
+    
+    canvas.after:
+        Color:
+            rgb: (0,0,0)
+        Line:
+            points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1]
+
+<Fila3>:
+    orientation: 'horizontal'
+    size_hint:(1,0.05)
+
+    AnchorLayout:
+        
+        canvas.before:
+            Color:
+                rgb:0.72,0.72,0.72
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        anchor_x: 'center'
+        anchor_y: 'center'
+        
+<Info>:
+    orientation: 'vertical'
+    padding: -2
+    size_hint: (1,1)
+    
+    canvas:
+        Color:
+            rgb: (0.83,0.83,0.9) 
+        Rectangle:
+            size: (self.size)
+            pos: self.pos
+    Label:
+        text_size:self.size
+        padding: (15,15)
+        halign:'center'
+        valign:'top'
+        text: root.g
+        color: 0,0,0,1
+
+<ListaBase>:
+    orientation: 'horizontal'
+    canvas:
+        Color:
+            rgb:0.72,0.72,0.72
+        Rectangle:
+            size: self.size
+            pos: self.pos
+            
+<MenuBar>:
+    orientation: 'horizontal'
+    size_hint: (1,None)
+    height: 30
+    padding: (3,3)
+
+    canvas:
+        Color:
+            rgb:0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        
+    canvas.before:
+        Color:
+            rgb: (0,0,0)
+        Line:
+            points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1]
+       
+<MenuInicial>:
+    canvas:
+        Color:
+            rgb: (0.15,0.4, 0.6)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Separador>:
+    orientation: 'vertical'
+    size_hint: (1, None) 
+    height: 10 
+    canvas:
+        Color:
+            rgb:  0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<SeparadorH>:
+    orientation: 'horizontal'
+    size_hint: (None, 1) 
+    width : 5 
+    canvas:
+        Color:
+            rgb:  0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Separador2>:
+    orientation: 'vertical'
+    size_hint: (1, None) 
+    height: 15
+    canvas:
+        Color:
+            rgb:  0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Title>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint_y: None
+    height: 25 * int(ceil((len(root.g)* 40) / Window.size[0]))
+    
+    Label:
+        text: root.g
+        
+        text_size:self.size
+        font_size:15
+        bold:root.bold
+        padding: (0,7)
+        halign:'left'
+        valign:'top'
+        color: 0.25,0.25,0.25,1
+
+<TitleField>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint:(1,1)
+
+    Label:
+        text: root.g
+        bold: True
+        text_size:self.size
+        padding: (7,7)
+        halign:'center'
+        valign:'top'
+        color: 1,1,1,1
+
+<TitleFilter>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint_y: None
+    height: 30 * int(ceil((len(root.g)* 50) / Window.size[0]))
+
+    Label:
+        text: root.g
+        text_size:self.size
+        padding: (10,0)
+        valign:'middle'
+        color: 1,1,1,1
+
+
+<TitlePag>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint:(1,1)
+
+    Label:
+        text: root.g
+        text_size:self.size
+        padding: (10,0)
+        halign:'center'
+        bold: True
+        valign:'middle'
+        color: 1,1,1,1
+
+<Toolbar>:
+    size_hint:(None,1)
+    width:  (Window.size[0]*0.2 +6 if Window.size[0]*0.2>150 else 150) if root.show else 0
+    orientation: 'vertical'
+    canvas:
+        Color:
+            rgb: 0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<ToolbarContaner>:
+    size_hint_y: None
+    minimum_height: self.height
+    padding: (10,10)
+
+<ToolbarShow>:
+    size_hint_y:1
+    size_hint_x:None
+    width:30
+    source:'imagenes/lines.png'
+
+<ToolbarSub>:
+    size_hint:(1,1)
+    effect_cls: ScrollEffect
+    do_scroll_y: True
+    bar_width: 5
+    bar_color: 0.7, 0.7, 0.7, 0.85   
+    bar_inactive_color:  0.7, 0.7, 0.7, 0.4 
+    scroll_type:  ['bars']
+    canvas:
+        Color:
+            rgb: 0.9,0.9,0.9
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<ToolbarText>:
+    id: root.g
+    size_hint: (1,1)
+    #width: (Window.size[0]*0.2-45 if Window.size[0]*0.2>150 else 105) if self.main else Window.size[0]*0.2
+
+    canvas.before:
+        Color:
+            rgb: (0.2,0.2,0.2) if root.main else (0.9,0.9,0.9)
+        Ellipse:
+            pos: self.pos
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]
+            segments: 360
+            size: self.r,self.r
+        Ellipse:
+            pos: self.pos[0],self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Rectangle:
+            size: self.size[0] -  self.r, self.size[1]
+            pos: self.pos[0]+(self.r/2),self.pos[1]
+        Rectangle:
+            size: self.size[0],self.size[1]- self.r
+            pos: self.pos[0],self.pos[1]+self.r/2
+
+    Label:
+        text: root.g
+        halign:'center' 
+        padding: (15,5) 
+        valign:'top'
+        font_size:14
+        bold: True
+        text_size:self.size
+        color:  (0.9,0.9,0.9,1) if root.main else (0.2,0.2,0.2,1)
+
+<ToolbarTitle>:
+    orientation: 'horizontal'
+    size_hint:(None,None)
+    width: Window.size[0]*0.2 if Window.size[0]*0.2>150 else 150
+    height:24
+
+    # canvas.before:
+    #     Color:
+    #         rgb: (0,0,0)
+    #     Line:
+    #         points: self.pos[0] +self.size[0], self.pos[1]+self.size[1], self.pos[0] + self.size[0], self.pos[1]
+
+<ToolbarTitleText>:
+    orientation: 'horizontal'
+    size_hint:(None,1)    
+    height:24
+
+    canvas.before:
+        Color:
+            rgb: 0.15,0.20,0.4
+        Ellipse:
+            pos: self.pos
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]
+            segments: 360
+            size: self.r,self.r
+        Ellipse:
+            pos: self.pos[0],self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Ellipse:
+            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]+self.size[1]-self.r
+            size: self.r,self.r
+            segments: 360
+        Rectangle:
+            size: self.size[0] -  self.r, self.size[1]
+            pos: self.pos[0]+(self.r/2),self.pos[1]
+        Rectangle:
+            size: self.size[0],self.size[1]- self.r
+            pos: self.pos[0],self.pos[1]+self.r/2
+
+    Label:
+        text: root.g
+        halign:'center' 
+        padding: (15,5) 
+        valign:'top'
+        font_size:14
+        text_size:self.size
+        color:  1,1,1,1

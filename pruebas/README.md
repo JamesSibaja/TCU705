@@ -18,8 +18,6 @@ Falta cambiar:
 -Analizar opciones al trabajar base con indices
 -Allen Renato Sibaja Chinchilla revisar nivel de inglés (error de codificación)
 -Mejorar interfaz de estadísticas
--Quitar barra superior e inferior (o agregar titulo acorde) al mostrar estadísticas
--Ordenar stadísticas de mayor a menor, con paginación
 -Incluir opción de eliminar o agregar campos
 -Incluir opción de cambiar y agregar nuevas bases
 -Ajustar texto a botones
@@ -30,11 +28,14 @@ Falta cambiar:
 -Anadir opcion para salir del area de calculo
 -Al salir se deben limpiar las opciones de columna
 -Al esconder el menú se quita el menú de filtro
+-Agregar ópcion básica de editar
 
     *Poner una imagen con 3 lineas
     *Que el titulo y boton de la barra de herramientas se escondan bien
     *Arreglar el código (una sola instrucción para barra de página, mejorar nombre de variables, y comentar)
     *Mejorar interfaz de estadísticas
--Agregar ópcion básica de editar
+    *Quitar barra superior e inferior (o agregar titulo acorde) al mostrar estadísticas
+    *Ordenar stadísticas de mayor a menor, con paginación
+
 
             -Agregar opción de editar
