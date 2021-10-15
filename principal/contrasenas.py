@@ -28,7 +28,7 @@ class passw_manager:
         rows = c.fetchall()
 
         for r in rows:
-            if r[0] == usuario and r[1] == password:
+            if r[0] == sha256(usuario.encode()).hexdigest() and r[1] == sha256(password.encode()).hexdigest():
                 self.data.commit()
                 self.data.close()
                 return True
@@ -39,13 +39,29 @@ class passw_manager:
 
         
         
+
     def save_new(self, usuario, password):
         self.data = sqlite3.connect(self.base)
 
         c = self.data.cursor()
 
-        c.execute('''INSERT INTO passwords
-             VALUES(?,?)''', (sha256(usuario.encode()).hexdigest(), sha256(password.encode()).hexdigest()))
+        c.execute('''SELECT * FROM passwords;''')
 
-        self.data.commit()
-        self.data.close()
+        rows = c.fetchall()
+
+        usuario_ya_añadido = False
+        for r in rows:
+            if r[0] == sha256(usuario.encode()).hexdigest():
+                usuario_ya_añadido = True
+                break
+
+        if (not usuario_ya_añadido):
+            c.execute('''INSERT INTO passwords
+                VALUES(?,?)''', (sha256(usuario.encode()).hexdigest(), sha256(password.encode()).hexdigest()))
+
+            self.data.commit()
+            self.data.close()
+            return True
+        else:
+            return False
+
