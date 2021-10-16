@@ -104,12 +104,12 @@ if __name__ == '__main__': #Función principal
     table = "BaseCV"
     path = "./cv_acosta.xlsx"
     xls = pd.ExcelFile(path) #Se carga el documento de excel
-    miConexion = sqlite3.connect('baseProyecto')    
+    miConexion = sqlite3.connect('baseProyecto')
     df = pd.read_excel(path) #Se lee el documento de excel  
     df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
     c = miConexion.cursor()
     c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
-    pathFile = ''    
+    pathFile = ''
     SubiendoArchivo = False
     aplicacion = DatabaseGUIApp(base=c,conexion = miConexion) #Se crea un objeto con la aplicación
     aplicacion.run() #Se ejecuta la aplicación

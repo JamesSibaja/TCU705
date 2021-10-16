@@ -277,7 +277,7 @@ class DataViewerContainer(StackLayout):
     pass
 
 class campoBD1(ButtonBehavior,BoxLayout):
-    ID = NumericProperty()
+    ID = StringProperty()
     g = StringProperty()
     col = StringProperty()
     num = NumericProperty()
@@ -299,7 +299,7 @@ class Fila(BoxLayout):
 class campoBD2(BoxLayout):
     pdf = BooleanProperty()
     edit = BooleanProperty()
-    ID = NumericProperty()
+    ID = StringProperty()
     pag = NumericProperty()
     def __init__(self,pdf,idNum,path='',pag=0,editar=False,index = 'index'):
         super(campoBD2, self).__init__()

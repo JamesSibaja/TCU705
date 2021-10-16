@@ -862,14 +862,14 @@ Crea la base de datos y crea el objeto aplicación a partir de clase  DatabaseGU
 
 if __name__ == '__main__': #Función principal
 
-    table = "BaseCV"
+    table = "passwords"
     path = "./cv_acosta.xlsx"
     xls = pd.ExcelFile(path) #Se carga el documento de excel
     miConexion = sqlite3.connect('base')    
     df = pd.read_excel(path) #Se lee el documento de excel  
-    df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
+    #df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
     c = miConexion.cursor()
-    c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
+    #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
     pathFile = ''    
     SubiendoArchivo = False
     aplicacion = DatabaseGUIApp(base=c) #Se crea un objeto con la aplicación
