@@ -82,7 +82,7 @@ class MainWindow(BoxLayout):
         self.build(0)
 
     #Constructor de la ventana principal
-    def build(self,window):
+    def build(self,window=1):
         self.clear_widgets()
         if window == 0:
             self.window = StartMenu(self)
