@@ -10,14 +10,15 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseGUI(BoxLayout): 
-    def __init__(self,base,table,aplicacion,conexion,df):
+    def __init__(self,base,table,aplicacion):
         super(DatabaseGUI, self).__init__()
-        self.base = base
+
+        self.conexion = sqlite3.connect(base)
+        self.base = self.conexion.cursor()
         self.aplicacion = aplicacion
-        self.table = table
-        self.conexion = conexion
+        self.table = table  
         self.build()
-        self.df = df
+        #self.df = df
 
     #Constructor de la ventana principal
     def build(self):
@@ -77,7 +78,7 @@ class DatabaseGUI(BoxLayout):
         self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
-        self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
+        self.submitOptions.append(ToolbarText(texto = 'Conteo',on_press=self.nuevoEst))#
         self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
         self.menubarBuilder()
         self.toolbar.add_widget(self.contenedor)
@@ -433,7 +434,7 @@ class DatabaseGUI(BoxLayout):
         self.listaFiltros2 = self.listaFiltros
         self.filtros2 = self.filtros
         self.listaFiltros = []
-        for field in self.df:
+        for field in self.nombres:
             self.listaFiltros.append(str(field))
         self.lista.reset()
         self.tablas = False
@@ -558,7 +559,7 @@ class DatabaseGUI(BoxLayout):
             self.menuFiltro = True
             contFiltro = 0
             self.listaFiltros = []
-            for field in self.df:
+            for field in self.nombres:
                 if (self.filtrosOpcion[contFiltro]):
                     self.listaFiltros.append(str(field))
                 contFiltro += 1

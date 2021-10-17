@@ -172,6 +172,7 @@
         Rectangle:
             size: self.size
             pos: self.pos
+
 <DatabaseMenu>:
     orientation: 'vertical'
     canvas:
@@ -353,6 +354,16 @@
     canvas:
         Color:
             rgb: (0.15,0.4, 0.6)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<NewDocument>:
+    orientation: 'vertical'
+    size_hint: (1,1)
+    canvas:
+        Color:
+            rgb: (0.97,0.70, 0.70) if root.doc else (0.9,0.9,0.9)
         Rectangle:
             size: self.size
             pos: self.pos

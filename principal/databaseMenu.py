@@ -10,22 +10,21 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseMenu(BoxLayout): 
-    def __init__(self,base,aplicacion):
+    def __init__(self, upApp,base,aplicacion):
         super(DatabaseMenu, self).__init__()
         self.conexion = sqlite3.connect(base)
         self.base = self.conexion.cursor()
         self.aplicacion = aplicacion
-        self.table = 'database'        
-        #CREATE TABLE IF NOT EXISTS
-        print('así')
+        self.table = 'database'   
+        self.upApp = upApp
         #get the count of tables with the name
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
                             Database varchar(255) NOT NULL
                         ) ''')
         
-        self.base.execute('''INSERT INTO database (Database)
-                    VALUES ('BaseCV') ''')
+        # self.base.execute('''INSERT INTO database (Database)
+        #             VALUES ('BaseCV') ''')
         self.conexion.commit()
         self.df = ['Database']
         self.build()
@@ -35,14 +34,14 @@ class DatabaseMenu(BoxLayout):
     def build(self):
         self.clear_widgets()
         self.numPag = 0
+        self.selectBase = ''
         self.MenuMain = ToolbarTitle()
+        self.editarPerfil = False
+        self.nuevaBase = False
         self.tablas = False
         self.select = False
         self.infoTextBox =[]
-        self.menuFiltro = False
         self.editPDF = False
-        self.estadisticas = False
-        self.filtroCalc = False
         self.editar = False
         self.datoCalc = ""
         self.menuTitle =0
@@ -58,8 +57,6 @@ class DatabaseMenu(BoxLayout):
         self.filtros2 = []
         self.campos = []
         self.nombres = list(map(lambda x: x[0], self.base.execute('select * from '+ self.table).description))
-        print(self.nombres)
-        print(self.df)
         self.index = self.nombres[0]
         self.nombres.pop(0)
         contCampos=0
@@ -79,20 +76,17 @@ class DatabaseMenu(BoxLayout):
         for selectField in self.campos:
             self.filaTitulo.add_widget(TitleField(selectField))
         self.palabrasBuscadas={}
-        self.nuevoFiltro = False
-        self.newEst = False
-        self.cambiarCampo = False
         self.pantalla = BoxLayout(orientation='horizontal')
 
         #Se crea la barra de Menú y barra de herramientas
         self.barraMenu = MenuBar()
         self.submitOptions = []
-        self.submitOptions.append(ToolbarText(texto = 'Ver',on_press=self.volverMenu))
-        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
-        self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
-        self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
-        self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
-        self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
+        self.submitOptions.append(ToolbarText(texto = 'Seleccionar',on_press=self.openBase))
+        self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))
+        self.submitOptions.append(ToolbarText(texto = 'Perfil',on_press=self.perfil))#
+        # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
+        # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
+        # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
         self.menubarBuilder()
         self.toolbar.add_widget(self.contenedor)
         self.subBoton = BoxLayout(size_hint=(1,None),height=50,padding= (15,5,15,10))
@@ -122,7 +116,7 @@ class DatabaseMenu(BoxLayout):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
         self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= self.table))
+        self.MenuMain.add_widget(ToolbarTitleText(texto= 'Usuario'))
         
         contOpt = 0
         for option in self.submitOptions:
@@ -145,135 +139,58 @@ class DatabaseMenu(BoxLayout):
         self.contenedor.clear_widgets()
         self.subBoton.clear_widgets()
         self.contenedor.build()
-        if self.nuevoFiltro or self.cambiarCampo or self.newEst:
+        self.contenedorLista.clear_widgets()
+        if self.editarPerfil:
             #Si se encuentra en el menú de columnas o se abre por primera vez el
             #menú de estadistica o el de filtro
-            contTexto =0
-            for filtro in self.filtros:
-                self.palabrasBuscadas.update({self.listaFiltros[contTexto]:filtro.text})
-                contTexto += 1
-            self.contenedor.stack.clear_widgets()
-            self.filtrosBotones = []
-            contBotones =0
-
-            if(self.cambiarCampo):
-                self.contenedor.stack.add_widget(Title("Mostrar:"))                
-                
-            if(self.nuevoFiltro):
-                self.contenedor.stack.add_widget(Title("Filtrar por:"))
-
-            if(self.newEst):
-                self.contenedor.stack.add_widget(Title("Escoger Datos:"))
-                self.contenedor.stack.add_widget(Separador())
-
-            for posibleFiltro in self.nombres:
-                if(self.cambiarCampo):
-                    if (self.camposOpcion[contBotones]):
-                        self.newBoton= ButtonOption(texto = str(posibleFiltro),select= True, on_press=self.nuevoFinal)
-                    else:
-                        self.newBoton= ButtonOption(texto = str(posibleFiltro),on_press=self.nuevoFinal)
-                if(self.nuevoFiltro):
-                    if (self.filtrosOpcion[contBotones]):
-                        self.newBoton= ButtonOption(texto = str(posibleFiltro),select= True, on_press=self.nuevoFinal)
-                    else:
-                        self.newBoton= ButtonOption(texto = str(posibleFiltro),on_press=self.nuevoFinal)
-                if(self.newEst):
-                    self.newBoton= ButtonMain(texto = str(posibleFiltro),on_press=self.newFinal)                    
-                self.filtrosBotones.append(self.newBoton)
-                contBotones +=1
-            n=0
-            for botonFiltro in self.filtrosBotones:
-                self.contenedor.stack.add_widget(self.filtrosBotones[n])
-                n+=1
-            if(not self.newEst):
-                self.contenedor.stack.add_widget(Separador2())
-                self.subBoton.add_widget(ButtonAccept(texto = 'Aceptar',on_press=self.aceptarCambios))
+            pass
                 
         else:            
             #Si se encuentra en el menú de filtros
-            if self.menuFiltro:                
-                self.contenedor.stack.clear_widgets()
-                self.filtros = []
-                self.menuFiltro = False
-                if self.estadisticas:
-                    self.submit = ButtonAccept(texto = 'Usar',on_press=self.usarFiltro)
-                else:
-                    self.submit = ButtonAccept(texto = 'Filtrar',on_press=self.buscar)
+            if self.nuevaBase:
+                self.contenedorLista.add_widget(NewDocument(self.aplicacion))
 
-                for filtro in self.listaFiltros:
-                    if (self.palabrasBuscadas.get(filtro) != None):
-                        self.filtros.append(TextInput(text=str(self.palabrasBuscadas[filtro]),size_hint_y=None,height=45))
-                    else:
-                        self.filtros.append(TextInput(text='',size_hint_y=None,height=45))
-                n=0
-                self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                self.contenedor.stack.add_widget(Separador2())
-                self.contenedor.stack.add_widget(ButtonMain(texto = 'Editar Filtros',on_press=self.editarFiltros))
-                self.contenedor.stack.add_widget(ButtonMain(texto = 'Limpiar Filtros',on_press=self.limpiar))
-                self.contenedor.stack.add_widget(Separador2())
-                for filtro in self.filtros:            
-                    self.contenedor.stack.add_widget(Title(texto=self.listaFiltros[n]+':'))
-                    self.contenedor.stack.add_widget(self.filtros[n])
-                    n+=1
-                if n > 0:
-                    self.contenedor.stack.add_widget(Separador())
-                    self.subBoton.add_widget(self.submit)
             else:
-                #Si se encuentra en el menú de estadistica
-                if self.estadisticas:
-                    self.contenedor.stack.clear_widgets()
-                    self.contenedor.stack.title = ToolbarTitle(on_press=self.volverMenu)
-                    self.contenedor.stack.title.add_widget(ToolbarText("Estadísticas"))
-                    self.contenedor.box = EstBox()
-                    self.contenedor.box.add_widget(Title("Filtro"))
-                    if self.filtroCalc:
-                        self.contenedor.box.add_widget(BotonOpcion(text = 'Usar',background_color =(0, 0.81, 0.59, 1),on_press=self.abFiltro))
-                        self.botonFiltro = BotonOpcion(background_color =(0.9,0.9,0.9),color=(0.9,0.9,0.9),disabled =False,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio)
-                    else:
-                        self.contenedor.box.add_widget(BotonOpcion(text = 'No usar',background_color =(0.8,0, 0.1, 1),on_press=self.abFiltro))
-                        self.botonFiltro = BotonOpcion(background_color =(0.9,0.9,0.9),color=(0.9,0.9,0.9),disabled =True,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio2)
-                   
-                    self.contenedor.box.add_widget(self.botonFiltro)
-                    self.contenedor.stack.add_widget(self.contenedor.box)
-                    self.contenedor.stack.add_widget(Separador2())
-                    self.contenedor.stack.add_widget(Title("Dato a calcular:"))
-                    self.contenedor.stack.add_widget(BotonOpcion(text = self.datoCalc,on_press=self.editarDatos))
-                    self.contenedor.stack.add_widget(Separador())
-                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Calcular',on_press=self.calcular))
-                    self.contenedor.stack.add_widget(Separador())
-                    self.subBoton.add_widget(ButtonAccept(texto = 'Volver',on_press=self.usarFiltro))
-              
-                else:
-                    #Si se encuentra en el menú de ver o el de editar
-                    self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
-                    self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
-                    self.contenedor.stack.add_widget(self.busqueda_gen)
-                    self.contenedor.stack.add_widget(Separador())
-                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                    self.contenedor.stack.add_widget(Separador2())            
-
-                    cont = -1
-                    self.infoTextBo=[]
-                    if self.select:
-                        for lista in self.lista.information:
-                            for text in lista:
-                              
-                                if cont == -1:
-                                    self.contenedor.stack.add_widget(Title("Indice: "+str(text),bold = True))
+                #Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
+                self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
+                self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
+                self.contenedor.stack.add_widget(self.busqueda_gen)
+                self.contenedor.stack.add_widget(Separador())
+                self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
+                self.contenedor.stack.add_widget(Separador2())            
+                self.createLista()
+                cont = -1
+                self.infoTextBo=[]
+                if self.select:
+                    for lista in self.lista.information:
+                        for text in lista:
+                            
+                            if cont == -1:
+                                self.contenedor.stack.add_widget(Title("Indice: "+str(text),bold = True))
+                            else:
+                                self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
+                                if self.nombres[cont] == 'Database':
+                                    self.selectBase = str(text)
+                                if self.editar:
+                                    self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
                                 else:
-                                    self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
-                                    if self.editar:
-                                        self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
-                                    else:
-                                        self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0.2)))
-                                    self.contenedor.stack.add_widget(self.infoTextBox[len(self.infoTextBox)-1])
-                                   
-                                    if self.editar:
-                                        self.contenedor.stack.add_widget(Separador())
-                                        self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
-                                cont = cont + 1
-
+                                    self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0.2)))
+                                self.contenedor.stack.add_widget(self.infoTextBox[len(self.infoTextBox)-1])
+                                
+                                if self.editar:
+                                    self.contenedor.stack.add_widget(Separador())
+                                    self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
+                            cont = cont + 1
+                    self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
         self.contenedor.add_widget(self.contenedor.stack)
+
+    def open(self,obj):
+        self.upApp.build(2,table= self.selectBase)
+
+    def createLista(self):
+        self.contenedorLista.add_widget(self.filaTitulo)
+        self.contenedorLista.add_widget(self.lista)
+        self.contenedorLista.add_widget(self.pagina)
 
     def editarCampo(self,obj): #Función que cambia las columnas que se muestran*
         filtro = "UPDATE "+self.table+" SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
@@ -281,92 +198,28 @@ class DatabaseMenu(BoxLayout):
         self.conexion.commit()
         self.buscar()
 
-    def volverMenu(self,obj): #Función de la opción del menu ver
+    def openBase(self,obj): #Función de la opción del menu ver
         self.menuTitle=0
         self.menubarBuilder()
-        self.editar = False
-        self.nuevoFiltro = False
-        self.menuFiltro = False
-        self.cambiarCampo = False
-        self.estadisticas = False
-        self.nuevoFiltro = False
-        self.newEst = False 
-        self.lista.editar = False
+        self.editarPerfil = False
+        self.nuevaBase = False
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.toolbar.show = False
+        self.toolbarHide(obj)
         self.toolbarBuilder()
 
-    def editarMenu(self,obj): #Función de la opción del menu editar
+    def newBase(self,obj): #Función de la opción del menu editar
         self.menuTitle=1
-        self.editar = True
         self.menubarBuilder()
-        self.nuevoFiltro = False
-        self.menuFiltro = False
-        self.cambiarCampo = False
-        self.estadisticas = False
-        self.nuevoFiltro = False
-        self.newEst = False
-        self.lista.editar = True
+        self.editarPerfil = False
+        self.nuevaBase = True
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.toolbar.show = False
+        self.toolbarHide(obj)
         self.toolbarBuilder()
-
-    #Habilitar la opción de usar filtro en estadistica
-    def abFiltro(self,obj):
-        self.filtroCalc = not self.filtroCalc
-        if self.filtroCalc:
-            obj.background_color =(0, 0.81, 0.59, 1)
-            obj.text = "Usar"
-            self.botonFiltro.disabled = False
-        else:
-            obj.background_color =(0.8,0, 0.1, 1)
-            self.botonFiltro.disabled = True
-            obj.text = "No usar"
-
-    def editarDatos(self,obj): #Escoger dato de referencia para clacular estadisticas
-        self.newEst = True
-        self.toolbarBuilder()
-
-    def editarFiltros(self,obj):  #Escoger que filtros se pueden usar
-        self.nuevoFiltro = True
-        self.toolbarBuilder()
-
-    def limpiar(self,obj): #Quitar todos los filtros
-        self.listaFiltros = []
-        self.filtros = []
-        contFiltro = 0
-        for field in self.nombres:            
-            self.filtrosOpcion[contFiltro]  = False
-            contFiltro += 1
-
-        self.menuFiltro = True
-        self.cambiarCampo = False
-        self.nuevoFiltro = False
-        self.newEst = False
         
-        self.toolbarBuilder()
-        self.buscar()
-
-    def newFinal(self,obj):
-        self.datoCalc = obj.g
-        self.cambiarCampo = False
-        self.nuevoFiltro = False
-        self.newEst = False
-        self.estadisticas = True
-        self.toolbarBuilder()
-
-    def calcular(self,obj): #Calcular estadísticas con todas la opciones escogidas
-        self.lista.reset()
-        self.tablas=True
-        self.numPag=0   
-        self.lista.reset()    
-        self.lista.calc(self.datoCalc,self.filtroCalc)
-        self.pagebarBuilder(0,False)  
-        
-        self.filaTitulo.clear_widgets()
-        self.filaTitulo.add_widget(TitleField(self.datoCalc))
-        self.filaTitulo.add_widget(TitleField('Cantidad'))
-        self.filaTitulo.add_widget(TitleField('Porcentaje'))
 
     def siguientePagina(self,obj): #Siguiente página para caso general
         self.lista.reset()
@@ -409,28 +262,6 @@ class DatabaseMenu(BoxLayout):
         else:
             self.pagina.add_widget(BoxLayout())
 
-    def cambiarColumnas(self): #Actualiza las columnas según las opciones seleccionadas
-        self.lista.reset()
-        self.campos=[]
-        contColum = 0
-        for field in self.nombres:
-            if(self.camposOpcion[contColum]):
-                self.campos.append(str(field))
-            contColum += 1
-        self.filaTitulo.clear_widgets()
-        for selectField in self.campos:
-            self.filaTitulo.add_widget(TitleField(selectField))
-        self.numPag=0   
-        self.lista.reset()
-        self.lista.build(entrada=self.campos,filtros= self.listaFiltros,pag=self.numPag,busqueda=self.filtros) 
-        self.pagebarBuilder(0,True) 
-        if self.tablas:
-            filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-            for x in self.base.execute(filtro):
-                        for y in x:
-                            self.lista.totalDatos=y
-        self.tablas = False
-
     def buscar(self,obj=None): #Función que filtra la base
         self.lista.reset()
         self.tablas = False
@@ -465,135 +296,11 @@ class DatabaseMenu(BoxLayout):
         self.listaFiltros = self.listaFiltros2
         self.filtros = self.filtros2
                 
-    def nuevoInicio(self,obj):
-        self.menuTitle=3
-        self.menubarBuilder()
-        self.newEst = False
-
-        self.cambiarCampo = False
-        self.estadisticas = False
-        self.nuevoFiltro = False
-      
-        if len(self.listaFiltros) == 0:
-            self.nuevoFiltro = True
-        else:
-            self.menuFiltro = True
-
-        self.contenedor.show = False
-        self.toolbar.show = False
-        self.toolbarHide(obj)
-        self.contenedor.stack.scroll_y=1
-
-    def nuevoInicio2(self,obj):
-        self.menuTitle=3
-        self.menubarBuilder()
-        self.newEst = False
-
-        self.cambiarCampo = False
-        self.nuevoFiltro = False
-      
-        if len(self.listaFiltros) == 0:
-            self.nuevoFiltro = True
-        else:
-            self.menuFiltro = True
-
-        self.contenedor.show = False
-        self.toolbar.show = False
-        self.toolbarHide(obj)
-        self.contenedor.stack.scroll_y=1
-
-    def nuevoEst(self,obj):
-        self.menuTitle=4
-        self.menubarBuilder()
-        self.nuevoFiltro = False
-        self.menuFiltro = False
-        self.cambiarCampo = False
-        self.estadisticas = False
-        self.nuevoFiltro = False
-
-        if self.datoCalc == "":
-            self.newEst = True
-        else:
-            self.estadisticas = True
-        self.contenedor.show = False
-        self.toolbar.show = False
-        self.toolbarHide(obj)
-        self.contenedor.stack.scroll_y=1
-
-    def nuevoFinal(self,obj):
-        if (self.nuevoFiltro):
-            contFiltro = 0
-            for field in self.nombres:
-                if (field == obj.g):
-                    self.filtrosOpcion[contFiltro]  = not self.filtrosOpcion[contFiltro]
-                contFiltro += 1
-            self.toolbarBuilder()
-
-        if (self.cambiarCampo):
-            contTitulo = 0
-            for field in self.nombres:
-                if(field == obj.g):
-                    self.camposOpcion[contTitulo] = not self.camposOpcion[contTitulo]
-                    obj.c = not obj.c
-                contTitulo += 1 
-
-    def usarFiltro(self,obj=None):       
-        self.lista.reset()
-        self.tablas = False
-        self.numPag=0
-        self.lista.reset()
-        self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
-        self.pagebarBuilder(0,True)
-
-        self.menuFiltro = False
-       
-        self.cambiarCampo = False
-        self.nuevoFiltro = False
-        self.newEst = False
-        filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-        for x in self.base.execute(filtro):
-                    for y in x:
-                        self.lista.totalDatos=y
-                        self.lista.totalDatos2=y
-        if self.menuTitle==4:
-            self.volverMenu(obj)
-        else:
-            self.toolbarBuilder()
-        self.menuTitle=4
-        self.menubarBuilder()
-            
-    def aceptarCambios(self,obj):
-        if(self.menuFiltro):
-            self.nuevoFiltro = False
-        self.menuFiltro = False
-        if(self.cambiarCampo):
-            self.cambiarColumnas()
-        if(self.nuevoFiltro):
-            self.menuFiltro = True
-            contFiltro = 0
-            self.listaFiltros = []
-            for field in self.df:
-                if (self.filtrosOpcion[contFiltro]):
-                    self.listaFiltros.append(str(field))
-                contFiltro += 1
-        if self.cambiarCampo:
-            self.volverMenu(obj)
-        else:
-            self.cambiarCampo = False
-            self.nuevoFiltro = False
-            self.newEst = False
-            self.toolbarBuilder()
-
-    def nuevoCampo(self,obj):
+    def perfil(self,obj):
         self.menuTitle=2
-        self.menubarBuilder()
-        self.cambiarCampo = True
-        self.nuevoFiltro = False
-        self.menuFiltro = False
-        self.estadisticas = False
-        self.nuevoFiltro = False
-        self.newEst = False 
-        self.contenedor.show = False
+        self.menubarBuilder()        
+        self.editarPerfil = True
+        self.nuevaBase = False
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
@@ -694,6 +401,27 @@ class Info(BoxLayout):
 
 class MenuBar(BoxLayout):
     pass
+
+class NewDocument(FloatLayout):
+    doc = BooleanProperty()
+    def __init__(self,aplicacion):
+        super(NewDocument, self).__init__()
+        self.aplicacion = aplicacion
+        self.doc = False
+        self.name = TextInput(size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475})
+        self.add_widget(Label(text='Nombre de la nueva base',color=(0.2,0.2,0.1),size_hint=(.6, .05), pos_hint={'x':.2, 'y':.55}))
+        self.add_widget(self.name)
+        self.add_widget(Button(text='Aceptar', size_hint=(.6, .05), pos_hint={'x':.2, 'y':.4},on_press=self.insertarBase))
+
+    def insertarBase(self,obj):
+        self.clear_widgets()
+        self.doc = True
+        self.aplicacion.subiendoBase = True
+        self.aplicacion.nombreArchivo = self.name.text
+        self.add_widget(Label(text='Arrastre un documento',color=(0.75,0.35,0.35),size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475}))
+        
+        
+
 
 class OcultarBarra(FloatLayout):
     pass

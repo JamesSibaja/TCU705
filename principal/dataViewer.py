@@ -136,7 +136,7 @@ class DataViewer(ScrollView):
             print('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'")
             for row in self.base.execute('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
-            print(self.information)
+            
         else:
             self.aplicacion.pantalla.window.select = False
         self.aplicacion.pantalla.window.toolbarBuilder()
