@@ -50,7 +50,7 @@ class MenuInicial(FloatLayout):
         self.password = TextInput(hint_text="Contraseña",password=True, size_hint=(.4, .05),  pos_hint={'x':.3, 'y':.5}, multiline=False, write_tab= False, on_text_validate=self.loggin)
         self.add_widget(self.password)
 
-        self.submit = Button(text='Iniciar Seción', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.35},on_press=self.loggin)
+        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.15, 'y':.2},on_press=self.loggin)
         self.add_widget(self.submit)
 
         self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.25},on_press=self.btn_register)
@@ -142,7 +142,7 @@ class RegisterWindow(FloatLayout, FocusBehavior):
         else:
             if(self.password.text == self.password2.text):
 
-                if (re.findall("^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$", self.password.text)):
+                if (re.findall("^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,@#$%^&+=]).*$", self.password.text)):
                     
                     
                     if(re.findall("^(?![-._])(?!.*[_.-]{2})[\w.-]{5,30}(?<![-._])$", self.user.text) and self.contrasenas_manager.save_new(self.user.text, self.password.text)):

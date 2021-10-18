@@ -74,13 +74,13 @@
 
     canvas:
         Color:
-            rgb:(0.9,0.9,0.9)  if root.c else (0.45,0.45,0.45)
+            rgb:(0.85,0.85,0.85)  if root.c else (0.45,0.45,0.45)
         Line:
             points: self.pos[0] , self.pos[1], self.pos[0] + self.size[0], self.pos[1] 
 
     canvas.before:
         Color:
-            rgb:(0.15,0.15,0.15)if root.c else (0.9,0.9,0.9)
+            rgb:(0.15,0.15,0.15)if root.c else (0.85,0.85,0.85)
         Rectangle:
             size:self.size
             pos:self.pos
@@ -219,7 +219,7 @@
     height:95
     canvas:
         Color:
-            rgb: (0.9,0.9,0.9)
+            rgb: (0.85,0.85,0.85)
         Rectangle:
             size: self.size
             pos: self.pos
@@ -230,7 +230,7 @@
     height:60
     canvas.before:
         Color:
-            rgb: (0.83-self.dark,0.83+self.dark,0.9-self.dark) if root.color else (0.9-self.dark,0.9+self.dark,0.95-self.dark)
+            rgb: (0.83+self.dark,0.83+self.dark,0.9-self.dark) if root.color else (0.9+self.dark,0.9+self.dark,0.95-self.dark)
         Rectangle:
             size:self.size
             pos:self.pos
@@ -383,7 +383,7 @@
     height: 10 
     canvas:
         Color:
-            rgb:  0.9,0.9,0.9
+            rgb:  0.85,0.85,0.85
         Rectangle:
             size: self.size
             pos: self.pos
@@ -405,7 +405,7 @@
     height: 15
     canvas:
         Color:
-            rgb:  0.9,0.9,0.9
+            rgb:  0.85,0.85,0.85
         Rectangle:
             size: self.size
             pos: self.pos
@@ -417,15 +417,53 @@
     height: 25 * int(ceil((len(root.g)* 40) / Window.size[0]))
     
     Label:
-        text: root.g
-        
+        text: root.g        
         text_size:self.size
         font_size:15
         bold:root.bold
-        padding: (0,7)
+        padding: (7,7)
         halign:'left'
         valign:'top'
-        color: 0.25,0.25,0.25,1
+        color: 0.5,0.5,0.5,1
+
+<Title3>:
+    orientation: 'vertical'
+    padding: (-2,-2,-2,0)
+    size_hint_y: None
+    height: 25 * int(ceil((len(root.g)* 40) / Window.size[0]))
+    
+    Label:
+        text: root.g        
+        text_size:self.size
+        font_size:15
+        bold:root.bold
+        padding: (7,7)
+        halign:'left'
+        valign:'top'
+        color: 0.2,0.2,0.2,1
+
+<Title2>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 30 
+
+    canvas:
+        Color:
+            rgb:(0,0,0)  
+        Line:
+            points: self.pos[0] , self.pos[1]+ self.size[1], self.pos[0] + self.size[0], self.pos[1] + self.size[1]
+
+    Label:
+        text: root.g
+        font_size:15
+        halign:'center'
+        padding: (15,5)
+        valign:'top'
+        bold: True
+        text_size:self.size
+        color: (0.2,0.2,0.2) 
+
+
 
 <TitleField>:
     orientation: 'vertical'
@@ -475,10 +513,16 @@
     orientation: 'vertical'
     canvas:
         Color:
-            rgb: 0.9,0.9,0.9
+            rgb: 0.85,0.85,0.85
         Rectangle:
             size: self.size
             pos: self.pos
+    
+    canvas.before:
+        Color:
+            rgb: (0,0,0)
+        Line:
+            points: self.pos[0] , self.pos[1]+ self.size[1], self.pos[0] + self.size[0], self.pos[1] + self.size[1]
 
 <ToolbarContaner>:
     size_hint_y: None
@@ -501,7 +545,7 @@
     scroll_type:  ['bars']
     canvas:
         Color:
-            rgb: 0.9,0.9,0.9
+            rgb: 0.85,0.85,0.85
         Rectangle:
             size: self.size
             pos: self.pos

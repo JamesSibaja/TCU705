@@ -65,9 +65,11 @@ class DatabaseGUIApp(App): #Aplicación principal
             #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
             c.execute("INSERT INTO database (Database) VALUES ('"+self.nombreArchivo+"') ")
             miConexion.commit()
+            for x in c.execute("SELECT ID FROM database WHERE `Database` = '"+self.nombreArchivo+"'"):
+                for y in x:
+                    self.pantalla.window.baseLink(y)
             c.close
             miConexion.close
-            self.pantalla.window.openBase('')
             #self.pantalla.window.lista.reset()
 
     def buildList(self):
