@@ -50,7 +50,7 @@ class MenuInicial(FloatLayout):
         self.password = TextInput(hint_text="Contraseña",password=True, size_hint=(.4, .05),  pos_hint={'x':.3, 'y':.5}, multiline=False, write_tab= False, on_text_validate=self.loggin)
         self.add_widget(self.password)
 
-        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.15, 'y':.2},on_press=self.loggin)
+        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.35},on_press=self.loggin)
         self.add_widget(self.submit)
 
         self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.25},on_press=self.btn_register)
