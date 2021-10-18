@@ -22,9 +22,29 @@ class DatabaseMenu(BoxLayout):
                             ID INTEGER primary key autoincrement,
                             Database varchar(255) NOT NULL
                         ) ''')
-        
-        # self.base.execute('''INSERT INTO database (Database)
-        #             VALUES ('BaseCV') ''')
+
+        self.base.execute('''CREATE TABLE IF NOT EXISTS users(
+                            ID INTEGER primary key autoincrement,
+                            UserName varchar(255) NOT NULL
+                        ) ''')
+
+        self.base.execute('''CREATE TABLE IF NOT EXISTS usersxdatabase(
+                            ID INTEGER primary key autoincrement,
+                            UserID INTEGER NOT NULL,
+                            DatabaseID INTEGER NOT NULL,
+                            FOREIGN KEY (UserID) REFERENCES users(ID),
+                            FOREIGN KEY (DatabaseID) REFERENCES database(ID)
+                        ) ''')
+
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('Luis') ''')
+
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('James') ''')
+
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('Erick') ''')
+
         self.conexion.commit()
         self.df = ['Database']
         self.build()
@@ -41,16 +61,18 @@ class DatabaseMenu(BoxLayout):
         self.tablas = False
         self.select = False
         self.infoTextBox =[]
-        self.editPDF = False
+        self.success = False
         self.editar = False
         self.datoCalc = ""
         self.menuTitle =0
         self.toolbar = Toolbar()
         self.contenedor = ToolbarSub() 
-        self.listaFiltros =[]
-        self.listaFiltros2 =[]
+        self.colaboradores =[]
+        self.colaboradoresID =[]
         self.filaTitulo = FilaTitulo()
         self.pagina = FilaPag()
+        self.listaFiltros =[]
+        self.listaFiltros2 =[]
         self.camposOpcion = []
         self.filtrosOpcion = []
         self.filtros = []
@@ -149,40 +171,76 @@ class DatabaseMenu(BoxLayout):
             #Si se encuentra en el menú de filtros
             if self.nuevaBase:
                 self.contenedorLista.add_widget(NewDocument(self.aplicacion))
+                self.contenedor.stack.add_widget(Title3("Agregar colaborador"))
+                self.newUser = TextInput(text='',size_hint_y=None,height=45)
+                self.contenedor.stack.add_widget(self.newUser)
+                self.contenedor.stack.add_widget(Separador())
+                self.contenedor.stack.add_widget(ButtonAccept(texto = 'Verificar',on_press=self.addUser))
+                self.contenedor.stack.add_widget(Separador2()) 
+
+                for user in self.colaboradores: 
+                    self.contenedor.stack.add_widget(Title2(user))
 
             else:
                 #Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
-                self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
+                self.contenedor.stack.add_widget(Title3("Ingrese termino de busqueda"))
                 self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
                 self.contenedor.stack.add_widget(self.busqueda_gen)
                 self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                self.contenedor.stack.add_widget(Separador2())            
+                self.contenedor.stack.add_widget(Separador2())                            
+                          
                 self.createLista()
                 cont = -1
                 self.infoTextBo=[]
                 if self.select:
+                    self.contenedor.stack.add_widget(Title2('Datos')) 
                     for lista in self.lista.information:
                         for text in lista:
                             
-                            if cont == -1:
-                                self.contenedor.stack.add_widget(Title("Indice: "+str(text),bold = True))
-                            else:
+                            if cont != -1:
                                 self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
                                 if self.nombres[cont] == 'Database':
                                     self.selectBase = str(text)
                                 if self.editar:
                                     self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
                                 else:
-                                    self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0.2)))
+                                    self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0)))
                                 self.contenedor.stack.add_widget(self.infoTextBox[len(self.infoTextBox)-1])
                                 
                                 if self.editar:
                                     self.contenedor.stack.add_widget(Separador())
                                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
                             cont = cont + 1
+                    self.contenedor.stack.add_widget(Title2('')) 
                     self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
         self.contenedor.add_widget(self.contenedor.stack)
+
+    def addUser(self,obj):
+        self.success = False
+        ID = 0
+        for r in self.base.execute('''SELECT ID, UserName FROM users'''):
+            if r[1] == self.newUser.text:
+                self.success = True  
+                ID = r[0] 
+                for user in self.colaboradores: 
+                    if user == self.newUser.text:
+                        self.success = False
+        if not self.success:
+            content = Button(text='Aceptar', size_hint=(0.5, 0.5),font_size= 20)
+            pop = Popup(title='El nombre de usuario no se encuentra disponible',
+                    content=content,
+                    title_align = 'center',
+                    title_size = '20',
+                    auto_dismiss=False,
+                    size_hint=(None, None), size=(350, 200))
+
+            content.bind(on_press=pop.dismiss)
+            pop.open()
+        else:
+            self.colaboradores.append(self.newUser.text)
+            self.colaboradoresID.append(ID)
+        self.toolbarBuilder()
 
     def open(self,obj):
         self.upApp.build(2,table= self.selectBase)
@@ -197,6 +255,11 @@ class DatabaseMenu(BoxLayout):
         self.base.execute(filtro)
         self.conexion.commit()
         self.buscar()
+
+    def baseLink(self,baseID):
+        for user in self.colaboradoresID:
+            self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID) VALUES ("+str(user)+","+str(baseID)+") ")
+        self.openBase('')
 
     def openBase(self,obj): #Función de la opción del menu ver
         self.menuTitle=0
@@ -214,12 +277,12 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.editarPerfil = False
         self.nuevaBase = True
+        self.colaboradores = []
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbar.show = False
         self.toolbarHide(obj)
-        self.toolbarBuilder()
-        
+        self.toolbarBuilder() 
 
     def siguientePagina(self,obj): #Siguiente página para caso general
         self.lista.reset()
@@ -458,6 +521,20 @@ class Title(BoxLayout):
         super(Title, self).__init__()
         self.g = texto
         self.bold = bold
+
+class Title3(BoxLayout):
+    g = StringProperty()
+    bold = BooleanProperty()
+    def __init__(self,texto,bold=False,filtro = True):
+        super(Title3, self).__init__()
+        self.g = texto
+        self.bold = bold
+
+class Title2(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto,**kwargs):
+        super(Title2, self).__init__(**kwargs)
+        self.g = texto
 
 class TitlePag(BoxLayout):
     g = StringProperty()

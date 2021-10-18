@@ -24,7 +24,8 @@ class DatabaseGUI(BoxLayout):
     def build(self):
         self.clear_widgets()
         self.numPag = 0
-        self.MenuMain = ToolbarTitle()
+        self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
+        #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
         self.infoTextBox =[]
@@ -78,7 +79,7 @@ class DatabaseGUI(BoxLayout):
         self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
-        self.submitOptions.append(ToolbarText(texto = 'Conteo',on_press=self.nuevoEst))#
+        self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
         self.menubarBuilder()
         self.toolbar.add_widget(self.contenedor)
@@ -107,9 +108,9 @@ class DatabaseGUI(BoxLayout):
     #Constructor de la barra de herramientas
     def menubarBuilder(self):
         self.barraMenu.clear_widgets()
-        self.MenuMain.clear_widgets()
-        self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= self.table))
+        # self.MenuMain.clear_widgets()
+        # self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
+       # self.MenuMain.add_widget(ToolbarTitleText(texto= self.table))
         
         contOpt = 0
         for option in self.submitOptions:
@@ -215,10 +216,10 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.box.add_widget(Title("Filtro"))
                     if self.filtroCalc:
                         self.contenedor.box.add_widget(BotonOpcion(text = 'Usar',background_color =(0, 0.81, 0.59, 1),on_press=self.abFiltro))
-                        self.botonFiltro = BotonOpcion(background_color =(0.9,0.9,0.9),color=(0.9,0.9,0.9),disabled =False,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio)
+                        self.botonFiltro = BotonOpcion(background_color =(0.85,0.85,0.85),color=(0.85,0.85,0.85),disabled =False,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio)
                     else:
                         self.contenedor.box.add_widget(BotonOpcion(text = 'No usar',background_color =(0.8,0, 0.1, 1),on_press=self.abFiltro))
-                        self.botonFiltro = BotonOpcion(background_color =(0.9,0.9,0.9),color=(0.9,0.9,0.9),disabled =True,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio2)
+                        self.botonFiltro = BotonOpcion(background_color =(0.85,0.85,0.85),color=(0.85,0.85,0.85),disabled =True,background_disabled_normal='',text = 'Filtros',on_press=self.nuevoInicio2)
                    
                     self.contenedor.box.add_widget(self.botonFiltro)
                     self.contenedor.stack.add_widget(self.contenedor.box)
@@ -232,33 +233,33 @@ class DatabaseGUI(BoxLayout):
               
                 else:
                     #Si se encuentra en el menú de ver o el de editar
-                    self.contenedor.stack.add_widget(Title("Ingrese termino de busqueda"))
+                    self.contenedor.stack.add_widget(Title3("Ingrese termino de busqueda"))
                     self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
                     self.contenedor.stack.add_widget(self.busqueda_gen)
                     self.contenedor.stack.add_widget(Separador())
                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                    self.contenedor.stack.add_widget(Separador2())            
-
+                    self.contenedor.stack.add_widget(Separador2())   
+                    #self.contenedor.stack.add_widget(Separador2())
                     cont = -1
                     self.infoTextBo=[]
-                    if self.select:
+                    if self.select:         
+                        self.contenedor.stack.add_widget(Title2('Datos')) 
                         for lista in self.lista.information:
                             for text in lista:
                               
-                                if cont == -1:
-                                    self.contenedor.stack.add_widget(Title("Indice: "+str(text),bold = True))
-                                else:
+                                if cont != -1:
                                     self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
                                     if self.editar:
                                         self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
                                     else:
-                                        self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0.2)))
+                                        self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.85,0.85,0.85,0)))
                                     self.contenedor.stack.add_widget(self.infoTextBox[len(self.infoTextBox)-1])
                                    
                                     if self.editar:
                                         self.contenedor.stack.add_widget(Separador())
                                         self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
                                 cont = cont + 1
+                        self.contenedor.stack.add_widget(Title2('')) 
 
         self.contenedor.add_widget(self.contenedor.stack)
 
@@ -717,6 +718,20 @@ class Title(BoxLayout):
         super(Title, self).__init__()
         self.g = texto
         self.bold = bold
+
+class Title3(BoxLayout):
+    g = StringProperty()
+    bold = BooleanProperty()
+    def __init__(self,texto,bold=False,filtro = True):
+        super(Title3, self).__init__()
+        self.g = texto
+        self.bold = bold
+
+class Title2(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto,**kwargs):
+        super(Title2, self).__init__(**kwargs)
+        self.g = texto
 
 class TitlePag(BoxLayout):
     g = StringProperty()
