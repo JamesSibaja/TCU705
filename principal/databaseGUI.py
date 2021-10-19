@@ -10,13 +10,14 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseGUI(BoxLayout): 
-    def __init__(self,base,table,aplicacion):
+    def __init__(self,base,table,aplicacion,edit):
         super(DatabaseGUI, self).__init__()
 
         self.conexion = sqlite3.connect(base)
         self.base = self.conexion.cursor()
         self.aplicacion = aplicacion
-        self.table = table  
+        self.table = table 
+        self.edit = edit 
         self.build()
         #self.df = df
 
@@ -76,7 +77,10 @@ class DatabaseGUI(BoxLayout):
         self.barraMenu = MenuBar()
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Ver',on_press=self.volverMenu))
-        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
+        if self.edit:
+            self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
+        else:
+            self.submitOptions.append(ToolbarText2(texto = 'Editar'))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
@@ -756,6 +760,16 @@ class ToolbarText(ButtonBehavior,BoxLayout):
     r = NumericProperty()
     def __init__(self,texto,main=False,r=16,**kwargs):
         super(ToolbarText, self).__init__(**kwargs)
+        self.g = texto
+        self.main = main
+        self.r = r
+
+class ToolbarText2(ButtonBehavior,BoxLayout):
+    g = StringProperty()
+    main = BooleanProperty()
+    r = NumericProperty()
+    def __init__(self,texto,main=False,r=16,**kwargs):
+        super(ToolbarText2, self).__init__(**kwargs)
         self.g = texto
         self.main = main
         self.r = r

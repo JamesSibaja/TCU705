@@ -9,7 +9,7 @@ Diferentes widgets que complementan la ventana principal y conforman la interfaz
 #Widget que muestra los datos solicitados de la base de datos
 class DataViewer(ScrollView):
     end = BooleanProperty()
-    def __init__(self,index,entrada,base,table,aplicacion,conexion,pag=0):
+    def __init__(self,index,entrada,base,table,aplicacion,conexion,pag=0,user = False):
         super(DataViewer, self).__init__()
         self.editar=False
         self.index = index

@@ -96,14 +96,14 @@ class MainWindow(BoxLayout):
         self.build(0)
 
     #Constructor de la ventana principal
-    def build(self,currentWindow=1,table= 'database'):
+    def build(self,currentWindow=1,table= 'database',userID=1,edit = False):
         self.clear_widgets()
         if currentWindow == 0:
             self.window = StartMenu(self)
         elif currentWindow == 1:
-            self.window = DatabaseMenu(self,base='base',aplicacion = aplicacion)
+            self.window = DatabaseMenu(self,base='base',aplicacion = aplicacion,userID=userID)
         else:
-            self.window = DatabaseGUI(base='base',table=table,aplicacion = aplicacion)
+            self.window = DatabaseGUI(base='base',table=table,aplicacion = aplicacion,edit=edit)
         self.add_widget(self.window)
 
 '''

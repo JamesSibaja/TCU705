@@ -10,14 +10,16 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseMenu(BoxLayout): 
-    def __init__(self, upApp,base,aplicacion):
+    def __init__(self, upApp,base,aplicacion,userID):
         super(DatabaseMenu, self).__init__()
-        self.conexion = sqlite3.connect(base)
+        self.baseName = base
+        self.conexion = sqlite3.connect(self.baseName)
         self.base = self.conexion.cursor()
+        self.userID = userID
         self.aplicacion = aplicacion
-        self.table = 'database'   
+        self.table = 'myDatabases'   
         self.upApp = upApp
-        #get the count of tables with the name
+        #get the count of tables with the name 
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
                             Database varchar(255) NOT NULL
@@ -35,7 +37,7 @@ class DatabaseMenu(BoxLayout):
                             FOREIGN KEY (UserID) REFERENCES users(ID),
                             FOREIGN KEY (DatabaseID) REFERENCES database(ID)
                         ) ''')
-
+        
         # self.base.execute('''INSERT INTO users (UserName)
         #                      VALUES ('Luis') ''')
 
@@ -52,6 +54,12 @@ class DatabaseMenu(BoxLayout):
 
     #Constructor de la ventana principal
     def build(self):
+        self.base.close()
+        self.conexion.close()
+        self.conexion = sqlite3.connect(self.baseName)
+        self.base = self.conexion.cursor()
+        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Database FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
+        self.conexion.commit()
         self.clear_widgets()
         self.numPag = 0
         self.selectBase = ''
@@ -138,7 +146,11 @@ class DatabaseMenu(BoxLayout):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
         self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= 'Usuario'))
+        self.base.execute("select UserName from users where ID = "+ str(self.userID))
+        userName=self.base.fetchall()
+        for x in userName:
+            for y in x:
+                self.MenuMain.add_widget(ToolbarTitleText(texto= y))
         
         contOpt = 0
         for option in self.submitOptions:
@@ -175,8 +187,11 @@ class DatabaseMenu(BoxLayout):
                 self.newUser = TextInput(text='',size_hint_y=None,height=45)
                 self.contenedor.stack.add_widget(self.newUser)
                 self.contenedor.stack.add_widget(Separador())
+                self.contenedor.stack.add_widget(ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)) 
+                self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(ButtonAccept(texto = 'Verificar',on_press=self.addUser))
                 self.contenedor.stack.add_widget(Separador2()) 
+                
 
                 for user in self.colaboradores: 
                     self.contenedor.stack.add_widget(Title2(user))
@@ -242,6 +257,7 @@ class DatabaseMenu(BoxLayout):
             self.colaboradoresID.append(ID)
         self.toolbarBuilder()
 
+
     def open(self,obj):
         self.upApp.build(2,table= self.selectBase)
 
@@ -259,6 +275,7 @@ class DatabaseMenu(BoxLayout):
     def baseLink(self,baseID):
         for user in self.colaboradoresID:
             self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID) VALUES ("+str(user)+","+str(baseID)+") ")
+            self.conexion.commit()
         self.openBase('')
 
     def openBase(self,obj): #Función de la opción del menu ver
@@ -266,8 +283,7 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.editarPerfil = False
         self.nuevaBase = False
-        self.lista.reset()
-        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.build()
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.toolbarBuilder()
