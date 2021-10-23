@@ -96,7 +96,7 @@ class MainWindow(BoxLayout):
         self.build(0)
 
     #Constructor de la ventana principal
-    def build(self,currentWindow=1,table= 'database',userID=1,edit = False):
+    def build(self,currentWindow=1,table= 'database',userID=1,edit = True):
         self.clear_widgets()
         if currentWindow == 0:
             self.window = StartMenu(self)

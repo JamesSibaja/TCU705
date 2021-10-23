@@ -101,7 +101,8 @@ class DatabaseMenu(BoxLayout):
         self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
-        self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
+        self.pagebarBuilder(0,True)
+        #self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(padding = 10,orientation= 'vertical')
         for selectField in self.campos:
             self.filaTitulo.add_widget(TitleField(selectField))

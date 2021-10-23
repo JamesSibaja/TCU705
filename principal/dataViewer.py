@@ -21,7 +21,7 @@ class DataViewer(ScrollView):
         self.conexion = conexion
         self.calcEst = ''
         self.base = base
-        for row in self.base.execute('SELECT * From '+ self.table):
+        for row in self.base.execute("SELECT * From '"+ self.table+"'"):
             self.totalDatos += 1
         self.total = self.totalDatos
         self.totalDatos2 = self.totalDatos
@@ -248,7 +248,7 @@ class campoBD1(ButtonBehavior,BoxLayout):
     g = StringProperty()
     col = StringProperty()
     num = NumericProperty()
-    def __init__(self,texto,num,idNum=0,campo='',**kwargs):
+    def __init__(self,texto,num,idNum='',campo='',**kwargs):
         super(campoBD1, self).__init__(**kwargs)
         self.g = texto
         self.col = campo

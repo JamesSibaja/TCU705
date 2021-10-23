@@ -18,6 +18,7 @@ class DatabaseGUI(BoxLayout):
         self.aplicacion = aplicacion
         self.table = table 
         self.edit = edit 
+        self.base.execute("ALTER TABLE '"+self.table+"' ADD PDF TEXT")
         self.build()
         #self.df = df
 
