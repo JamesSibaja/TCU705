@@ -21,7 +21,7 @@ class DataViewer(ScrollView):
         self.conexion = conexion
         self.calcEst = ''
         self.base = base
-        for row in self.base.execute("SELECT * From '"+ self.table+"'"):
+        for row in self.base.execute("SELECT * From `"+ self.table+"`"):
             self.totalDatos += 1
         self.total = self.totalDatos
         self.totalDatos2 = self.totalDatos
@@ -56,7 +56,7 @@ class DataViewer(ScrollView):
                 self.filtroSelect += ", "
             n += 1
             
-        self.filtroWhere =" FROM "+ self.table
+        self.filtroWhere =" FROM `"+ self.table+'`'
         n=0
         primero=True
         for elemento in busqueda:
@@ -133,8 +133,8 @@ class DataViewer(ScrollView):
         if self.filas[obj.num].dark == 0.2:
             self.aplicacion.pantalla.window.select = True
             self.information = []
-            print('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'")
-            for row in self.base.execute('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'"):
+            print('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'")
+            for row in self.base.execute('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
             
         else:
@@ -173,7 +173,7 @@ class DataViewer(ScrollView):
         if filtroAct:
             filtro = "SELECT `"+ str(text) +"` " + self.filtroWhere
         else:
-            filtro = "SELECT `"+ str(text) +"` FROM "+ self.table
+            filtro = "SELECT `"+ str(text) +"` FROM `"+ self.table +'`'
         
         data = pd.read_sql_query(filtro, self.conexion)
         data=pd.unique(data[str(text)])
@@ -203,7 +203,7 @@ class DataViewer(ScrollView):
                 if filtroAct:
                     filtro2 = "SELECT COUNT(`"+ str(text) +"`) "+self.filtroWhere
                 else:
-                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM "+ self.table+" WHERE "
+                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM `"+ self.table+"` WHERE "
                 primero = True
                 for palabra in diferente:
                     palabras += str(palabra)+" "
@@ -226,7 +226,7 @@ class DataViewer(ScrollView):
 
     #Función para agregar PDF
     def insertPdf(self,fileName,idNum):
-        filtro = "UPDATE "+ self.table+" SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
+        filtro = "UPDATE `"+ self.table+"` SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
 
@@ -291,7 +291,7 @@ class campoBD2(BoxLayout):
             self.aplicacion.agregar=False
 
     def delete(self):
-        filtro = "UPDATE "+ self.table+" SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
+        filtro = "UPDATE `"+ self.table+"` SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
         self.aplicacion.buildList()

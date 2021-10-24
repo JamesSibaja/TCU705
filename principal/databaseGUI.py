@@ -18,7 +18,7 @@ class DatabaseGUI(BoxLayout):
         self.aplicacion = aplicacion
         self.table = table 
         self.edit = edit 
-        self.base.execute("ALTER TABLE '"+self.table+"' ADD PDF TEXT")
+        self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
         self.build()
         #self.df = df
 
@@ -49,7 +49,7 @@ class DatabaseGUI(BoxLayout):
         self.filtros = []
         self.filtros2 = []
         self.campos = []
-        self.nombres = list(map(lambda x: x[0], self.base.execute('select * from '+ self.table).description))
+        self.nombres = list(map(lambda x: x[0], self.base.execute("select * from `"+ self.table+"`").description))
         self.index = self.nombres[0]
         self.nombres.pop(0)
         contCampos=0
