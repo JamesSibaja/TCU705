@@ -50,7 +50,7 @@ class DataViewer(ScrollView):
             if (n == 0):
                 self.filtroSelect += ", "
             self.filtroSelect += "`" + str(selectField) + "`"
-            if (selectField == 'PDF'):
+            if (selectField.endswith('.d')):
                 PDF = (True,n)
             if(selectField != entrada[len(entrada)-1]):
                 self.filtroSelect += ", "
@@ -94,14 +94,14 @@ class DataViewer(ScrollView):
                     if PDF[0] and columnas == PDF[1]:
                         if self.editar:
                             if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,doc=entrada[columnas],table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
                             else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,doc=entrada[columnas],table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
                         else:
                             if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,doc=entrada[columnas],table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
                             else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,doc=entrada[columnas],table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
                         
                     else:
                         self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),cont,indexID,entrada[columnas],on_press=self.info))
@@ -225,8 +225,8 @@ class DataViewer(ScrollView):
         self.calcAct(pag)
 
     #Función para agregar PDF
-    def insertPdf(self,fileName,idNum):
-        filtro = "UPDATE `"+ self.table+"` SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
+    def insertPdf(self,fileName,idNum,doc):
+        filtro = "UPDATE `"+ self.table+"` SET `"+str(doc)+"` = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
 
@@ -268,9 +268,10 @@ class campoBD2(BoxLayout):
     edit = BooleanProperty()
     ID = NumericProperty()
     pag = NumericProperty()
-    def __init__(self,pdf,idNum,conexion,base,aplicacion,table,path='',pag=0,editar=False,index = 'index'):
+    def __init__(self,pdf,idNum,doc,conexion,base,aplicacion,table,path='',pag=0,editar=False,index = 'index'):
         super(campoBD2, self).__init__()
         self.pdf = pdf
+        self.doc = doc
         self.ID = idNum
         self.g = path
         self.pag = pag
@@ -285,13 +286,14 @@ class campoBD2(BoxLayout):
         if (self.aplicacion.agregar):
             self.aplicacion.archivo = self.ID
             self.aplicacion.pag = self.pag
+            self.aplicacion.doc = self.doc
             self.aplicacion.SubiendoArchivo = True
             self.clear_widgets()
             self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
             self.aplicacion.agregar=False
 
     def delete(self):
-        filtro = "UPDATE `"+ self.table+"` SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
+        filtro = "UPDATE `"+ self.table+"` SET `"+str(self.doc)+"` = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
         self.aplicacion.buildList()

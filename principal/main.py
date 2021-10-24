@@ -39,6 +39,7 @@ class DatabaseGUIApp(App): #Aplicación principal
         self.pantalla = MainWindow()
         self.archivo = ''
         self.nombreArchivo=''
+        self.doc = ''
         self.agregar=True
         self.pag = 0
         return self.pantalla
@@ -51,7 +52,7 @@ class DatabaseGUIApp(App): #Aplicación principal
             self.SubiendoArchivo = False
             shutil.copy(file_path,self.nombreArchivo)
             #print(self.pag)
-            self.pantalla.window.lista.insertPdf(fileName=self.nombreArchivo,idNum=self.archivo)
+            self.pantalla.window.lista.insertPdf(doc = self.doc,fileName=self.nombreArchivo,idNum=self.archivo)
             self.pantalla.window.lista.reset()
             self.pantalla.window.lista.build(entrada=self.pantalla.window.campos,pag=self.pag,filtros= self.pantalla.window.listaFiltros,busqueda=self.pantalla.window.filtros)
         if self.subiendoBase:

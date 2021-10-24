@@ -18,7 +18,7 @@ class DatabaseGUI(BoxLayout):
         self.aplicacion = aplicacion
         self.table = table 
         self.edit = edit 
-        self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
+        #self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
         self.build()
         #self.df = df
 
@@ -31,6 +31,7 @@ class DatabaseGUI(BoxLayout):
         self.tablas = False
         self.select = False
         self.infoTextBox =[]
+        self.newColumnName = ''
         self.menuFiltro = False
         self.editPDF = False
         self.estadisticas = False
@@ -245,6 +246,8 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
                     self.contenedor.stack.add_widget(Separador2())   
                     #self.contenedor.stack.add_widget(Separador2())
+                    if self.editar:
+                        self.contenedor.stack.add_widget(ButtonMain(texto = 'Agregar columna',on_press=self.nuevaColumna))
                     cont = -1
                     self.infoTextBo=[]
                     if self.select:         
@@ -590,6 +593,26 @@ class DatabaseGUI(BoxLayout):
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
+
+    def nuevaColumna(self,obj):
+        self.newColumnName = TextInput(size_hint=(1, 0.5))
+        self.pop = Popup(title='Agregar un nuevo campo a la base',
+                content=BoxLayout(orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 200))
+        self.pop.content.add_widget(Label(text='Nombre columna:'))
+        self.pop.content.add_widget(self.newColumnName)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, 0.3)))
+        self.pop.content.add_widget(Button(text='Aceptar', size_hint=(1, 0.5),font_size= 20,on_press=self.nuevaColumnaCrear))
+        self.pop.open()
+
+    def nuevaColumnaCrear(self,obj):
+        self.pop.dismiss(obj)
+        self.nombres.append(str(self.newColumnName.text)+".d")
+        self.camposOpcion.append(False)
+        self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+str(self.newColumnName.text)+".d` TEXT")
 
 def on_enter(instance, value):
     print('User pressed enter in', instance)
