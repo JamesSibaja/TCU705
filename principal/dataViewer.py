@@ -41,7 +41,7 @@ class DataViewer(ScrollView):
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
-        PDF = (False,0)
+        PDF = []
         color = True
         cont = 0
         self.filtroSelect = "SELECT `"+ self.index +"`"
@@ -51,7 +51,9 @@ class DataViewer(ScrollView):
                 self.filtroSelect += ", "
             self.filtroSelect += "`" + str(selectField) + "`"
             if (selectField.endswith('.d')):
-                PDF = (True,n)
+                PDF.append(True)
+            else:
+                PDF.append(False)
             if(selectField != entrada[len(entrada)-1]):
                 self.filtroSelect += ", "
             n += 1
@@ -91,7 +93,7 @@ class DataViewer(ScrollView):
                 else:    
                     if isinstance(x,float):
                         x=int(x)
-                    if PDF[0] and columnas == PDF[1]:
+                    if PDF[columnas]:
                         if self.editar:
                             if x == None or x == '':
                                 self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,doc=entrada[columnas],table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
@@ -194,7 +196,7 @@ class DataViewer(ScrollView):
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
- 
+
         self.listEst=[]
         palabras=""
         self.totalDatos=len(data3)

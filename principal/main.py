@@ -64,7 +64,7 @@ class DatabaseGUIApp(App): #Aplicación principal
             df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
             c = miConexion.cursor()
             #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
-            c.execute("INSERT INTO database (Database) VALUES ('"+self.nombreArchivo+"') ")
+            c.execute("INSERT INTO database (Database,columns) VALUES ('"+self.nombreArchivo+"','111') ")
             miConexion.commit()
             for x in c.execute("SELECT ID FROM database WHERE `Database` = '"+self.nombreArchivo+"'"):
                 for y in x:

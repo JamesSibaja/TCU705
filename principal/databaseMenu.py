@@ -22,7 +22,8 @@ class DatabaseMenu(BoxLayout):
         #get the count of tables with the name 
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
-                            Database varchar(255) NOT NULL
+                            Database varchar(255) NOT NULL,
+                            Columns varchar(255) NOT NULL
                         ) ''')
 
         self.base.execute('''CREATE TABLE IF NOT EXISTS users(
@@ -101,7 +102,7 @@ class DatabaseMenu(BoxLayout):
         self.nombres.pop(0)
         contCampos=0
         for selectField in self.nombres:
-            if(contCampos < 3 ):
+            if selectField !='Columns':
                 self.camposOpcion.append(True)
                 self.campos.append(str(selectField))
             else:
