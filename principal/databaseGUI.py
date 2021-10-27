@@ -10,10 +10,11 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseGUI(BoxLayout): 
-    def __init__(self,base,table,aplicacion,edit):
-        super(DatabaseGUI, self).__init__()
+    def __init__(self,base,upApp,table,aplicacion,edit,**kwargs):
+        super(DatabaseGUI, self).__init__(**kwargs)
 
         self.conexion = sqlite3.connect(base)
+        self.upApp = upApp
         self.base = self.conexion.cursor()
         self.aplicacion = aplicacion
         self.table = table 
@@ -25,11 +26,12 @@ class DatabaseGUI(BoxLayout):
         self.build()
         #self.df = dfpop
 
-    #Constructor de la ventana principal
+    #Constructor de la ventana principal 
     def build(self):
         self.clear_widgets()
         self.numPag = 0
         self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
+        self.exit = Exit(on_press=self.salir)
         #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
@@ -69,7 +71,7 @@ class DatabaseGUI(BoxLayout):
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
@@ -138,7 +140,8 @@ class DatabaseGUI(BoxLayout):
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1        
+            contOpt = contOpt + 1    
+        self.barraMenu.add_widget(self.exit) 
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -663,6 +666,9 @@ class DatabaseGUI(BoxLayout):
                 self.camposOpcion.append(False)
                 self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+strName+"` TEXT")
 
+    def salir(self,obj):
+        self.upApp.build(3)
+
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
@@ -735,6 +741,11 @@ class Divisor(BoxLayout):
 
 class EstBox(BoxLayout):
     pass
+
+class Exit(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Exit, self).__init__(**kwargs)
+        pass
 
 class FilaPag(BoxLayout):
     r = NumericProperty()

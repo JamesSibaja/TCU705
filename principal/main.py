@@ -94,18 +94,47 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 class MainWindow(BoxLayout): 
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.sm = ScreenManager()
+        self.add_widget(self.sm)
+        # for i in range(1,3):
+        #     screen = Screen(name='Title%d' % i)
+        #     sm.add_widget(screen)
+        self.log = Screen(name='log')
+        self.sm.add_widget(self.log)
+        self.menu = Screen(name='menu')
+        self.sm.add_widget(self.menu)
+        self.base = Screen(name='base')
+        self.sm.add_widget(self.base)
+
         self.build(0)
+
+        
+        # for i in range(4):
+        #     screen = Screen(name='Title %d' % i)
+        #     self.sm.add_widget(screen)
+            
+        # self.sm.current = 'Title 2'
 
     #Constructor de la ventana principal
     def build(self,currentWindow=1,table= 'database',userID=1,edit = True):
-        self.clear_widgets()
+        #self.clear_widgets()
         if currentWindow == 0:
-            self.window = StartMenu(self)
-        elif currentWindow == 1:
-            self.window = DatabaseMenu(self,base='base',aplicacion = aplicacion,userID=userID)
+            self.menu.clear_widgets()
+            self.base.clear_widgets()
+            self.log.add_widget(StartMenu(upApp=self))
+            self.sm.current = 'log'
+        elif currentWindow == 1: 
+            self.userID = userID
+            self.menu.add_widget(DatabaseMenu(upApp=self,base='base',aplicacion = aplicacion,userID=userID))
+            self.sm.current = 'menu'
+        elif currentWindow == 2:
+            self.edit = edit
+            self.table = table
+            self.base.add_widget(DatabaseGUI(upApp=self,base='base',table=table,aplicacion = aplicacion,edit=edit))
+            self.sm.current = 'base'
         else:
-            self.window = DatabaseGUI(base='base',table=table,aplicacion = aplicacion,edit=edit)
-        self.add_widget(self.window)
+            self.sm.current = 'menu'
+        
 
 '''
 =================

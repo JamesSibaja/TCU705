@@ -10,8 +10,8 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseMenu(BoxLayout): 
-    def __init__(self, upApp,base,aplicacion,userID):
-        super(DatabaseMenu, self).__init__()
+    def __init__(self,upApp,base,aplicacion,userID,**kwargs):
+        super(DatabaseMenu, self).__init__(**kwargs)
         self.baseName = base
         self.conexion = sqlite3.connect(self.baseName)
         self.base = self.conexion.cursor()
@@ -64,6 +64,7 @@ class DatabaseMenu(BoxLayout):
         self.conexion.commit()
         self.clear_widgets()
         self.numPag = 0
+        self.exit = Exit(on_press=self.salir)
         self.selectBase = ''
         self.MenuMain = ToolbarTitle()
         self.editarPerfil = False
@@ -78,14 +79,10 @@ class DatabaseMenu(BoxLayout):
         self.menuTitle =0
         self.toolbar = Toolbar()
         self.contenedor = ToolbarSub() 
-        self.name = ''
         self.base.execute("select UserName from users where ID = "+ str(self.userID))
-        userName=self.base.fetchall()
-        for x in userName:
-            for y in x:
-                self.name = y
+        self.nameTitle = self.base.fetchall()[0][0]
 
-        self.colaboradores =[self.name]
+        self.colaboradores =[self.nameTitle]
         self.colaboradoresID =[self.userID]
         self.compartirID =[]
         self.filaTitulo = FilaTitulo()
@@ -109,7 +106,7 @@ class DatabaseMenu(BoxLayout):
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagebarBuilder(0,True)
@@ -125,7 +122,7 @@ class DatabaseMenu(BoxLayout):
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Seleccionar',on_press=self.openBase))
         self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))
-        self.submitOptions.append(ToolbarText(texto = 'Perfil',on_press=self.perfil))#
+        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.perfil))#
         # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
@@ -141,6 +138,7 @@ class DatabaseMenu(BoxLayout):
         self.add_widget(self.barraMenu)
         self.add_widget(self.pantalla)
         self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
+        
         self.toolbarBuilder()
 
     #Función que esconde la barra de herramientas
@@ -158,7 +156,7 @@ class DatabaseMenu(BoxLayout):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
         self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= self.name))
+        self.MenuMain.add_widget(ToolbarTitleText(texto= self.nameTitle))
         contOpt = 0
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
@@ -172,7 +170,8 @@ class DatabaseMenu(BoxLayout):
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1        
+            contOpt = contOpt + 1  
+        self.barraMenu.add_widget(self.exit)      
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -327,7 +326,7 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.editarPerfil = False
         self.nuevaBase = True
-        self.colaboradores =[self.name]
+        self.colaboradores =[self.nameTitle]
         self.colaboradoresID =[self.userID]
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
@@ -419,6 +418,26 @@ class DatabaseMenu(BoxLayout):
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
 
+    def salir(self,obj):
+        botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        self.pop = Popup(title='Cerrar sesión',
+                content=BoxLayout(padding=(10,0),orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 125))
+        botonesPop.add_widget(Button(text='Continuar', font_size= 20,on_press=self.cancelPop))
+        botonesPop.add_widget(Button(text='Cerrar', font_size= 20,on_press=self.cerrarSesion))
+        self.pop.content.add_widget(botonesPop)
+        self.pop.open()
+
+    def cancelPop(self,obj):
+        self.pop.dismiss(obj)
+
+    def cerrarSesion(self,obj):
+        self.pop.dismiss(obj)
+        self.upApp.build(0)
+
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
@@ -491,6 +510,11 @@ class Divisor(BoxLayout):
 
 class EstBox(BoxLayout):
     pass
+
+class Exit(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Exit, self).__init__(**kwargs)
+        pass
 
 class FilaPag(BoxLayout):
     r = NumericProperty()
@@ -599,7 +623,7 @@ class ToolbarTitle(BoxLayout):
 class ToolbarTitleText(BoxLayout):
     g = StringProperty()
     r = NumericProperty()
-    def __init__(self,texto,r=16,**kwargs):
+    def __init__(self,texto,r=20,**kwargs):
         super(ToolbarTitleText, self).__init__(**kwargs)
         self.g = texto
         self.r = r

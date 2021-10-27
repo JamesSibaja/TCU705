@@ -9,10 +9,11 @@ Diferentes widgets que complementan la ventana principal y conforman la interfaz
 #Widget que muestra los datos solicitados de la base de datos
 class DataViewer(ScrollView):
     end = BooleanProperty()
-    def __init__(self,index,entrada,base,table,aplicacion,conexion,pag=0,user = False):
+    def __init__(self,upapp,index,entrada,base,table,aplicacion,conexion,pag=0,user = False):
         super(DataViewer, self).__init__()
         self.editar=False
         self.index = index
+        self.upapp = upapp
         self.totalDatos = 0
         self.table = table
         self.filtroWhere = ''
@@ -36,7 +37,7 @@ class DataViewer(ScrollView):
     #Constructor del data viewer
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False, general=False):
         self.scroll_y=1
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.aplicacion.agregar = True
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
@@ -133,18 +134,18 @@ class DataViewer(ScrollView):
             self.filas[self.select].canvas.ask_update()
         self.select = obj.num
         if self.filas[obj.num].dark == 0.2:
-            self.aplicacion.pantalla.window.select = True
+            self.upapp.select = True
             self.information = []
             print('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'")
             for row in self.base.execute('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
             
         else:
-            self.aplicacion.pantalla.window.select = False
-        self.aplicacion.pantalla.window.toolbarBuilder()
+            self.upapp.select = False
+        self.upapp.toolbarBuilder()
 
     def calcAct(self,pag=0):#Actualizar la página del calculo de estadísticas
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.scroll_y=1
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
@@ -166,7 +167,7 @@ class DataViewer(ScrollView):
         self.add_widget(self.contenedor)
 
     def calc(self,text,filtroAct,pag=0): #Realizar el calculo de la estadística según las opciones escogidas
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.scroll_y=1
         self.calculando = text
         self.contenedor=DataViewerContainer()
