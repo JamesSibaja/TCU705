@@ -19,9 +19,9 @@ class DatabaseGUI(BoxLayout):
         self.aplicacion = aplicacion
         self.table = table 
         self.edit = edit 
-        self.base.execute("SELECT Columns From `database` WHERE Database = '"+self.table+"'")
+        self.base.execute("SELECT Columns From `database` WHERE Proyecto = '"+self.table+"'")
         self.columns = self.base.fetchall()[0][0]
-        print(self.columns)
+        #print(self.columns)
         #self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
         self.build()
         #self.df = dfpop
@@ -32,6 +32,7 @@ class DatabaseGUI(BoxLayout):
         self.numPag = 0
         self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
         self.exit = Exit(on_press=self.salir)
+        self.search = Search(on_press=self.salir)
         #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
@@ -77,7 +78,7 @@ class DatabaseGUI(BoxLayout):
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(padding = 10,orientation= 'vertical')
         for selectField in self.campos:
-            self.filaTitulo.add_widget(TitleField(selectField))
+            self.filaTitulo.add_widget(TitleField(selectField.rstrip('.d')))
         self.palabrasBuscadas={}
         self.nuevoFiltro = False
         self.newEst = False
@@ -140,7 +141,8 @@ class DatabaseGUI(BoxLayout):
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1    
+            contOpt = contOpt + 1  
+        self.barraMenu.add_widget(self.search)   
         self.barraMenu.add_widget(self.exit) 
  
     #Constructor de la barra de herramientas
@@ -284,7 +286,7 @@ class DatabaseGUI(BoxLayout):
 
     def editarCampo(self,obj): #Función que cambia las columnas que se muestran*
         filtro = "UPDATE `"+self.table+"` SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
-        print(filtro)
+        #print(filtro)
         self.base.execute(filtro)
         self.conexion.commit()
         self.buscar()
@@ -445,8 +447,9 @@ class DatabaseGUI(BoxLayout):
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
         self.base.execute(filtro)
-        self.lista.totalDatos = self.base.fetchall()[0][0]
-        self.lista.totalDatos2 = self.base.fetchall()[0][0]
+        print(self.base.fetchall())
+        # self.lista.totalDatos = self.base.fetchall()[0][0]
+        # self.lista.totalDatos2 = self.base.fetchall()[0][0]
         self.pagebarBuilder(0,True)
 
     def buscar_gen(self,obj=None): #Función que filtra la base de forma general (busca en todos los campos)
@@ -585,9 +588,9 @@ class DatabaseGUI(BoxLayout):
                     self.listaFiltros.append(str(field))
                 contFiltro += 1
         if self.cambiarCampo:
-            print(self.columns)
-            filtro = "UPDATE `database` SET `Columns` = '"+ self.columns +"' WHERE `Database` = '" + self.table +"'"
-            print(filtro)
+            #print(self.columns)
+            filtro = "UPDATE `database` SET `Columns` = '"+ self.columns +"' WHERE `Proyecto` = '" + self.table +"'"
+            #print(filtro)
             self.base.execute(filtro)
             self.conexion.commit()
             self.volverMenu(obj)
@@ -614,8 +617,10 @@ class DatabaseGUI(BoxLayout):
 
     def nuevaColumna(self,obj):
         self.newColumnName = TextInput(size_hint=(1, None),height=35,hint_text="Nombre de columna")
-        self.documentos = ToggleButton(size_hint=(1, None),height=30,text='Campo de documento')
+        self.documentos = CheckBox(size_hint=(None,1),width=80)
+        #self.documentos = ToggleButton(size_hint=(1, None),height=30,text='Campo de documento')
         botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        documentBox = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
         self.pop = Popup(title='Agregar un nuevo campo a la base',
                 content=BoxLayout(padding=(10,0),orientation='vertical'),
                 title_align = 'center',
@@ -625,7 +630,9 @@ class DatabaseGUI(BoxLayout):
         self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=10))
         self.pop.content.add_widget(self.newColumnName)
         self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=10))
-        self.pop.content.add_widget(self.documentos)
+        documentBox.add_widget(Label(text='Campo de documento',font_size=15))
+        documentBox.add_widget(self.documentos)
+        self.pop.content.add_widget(documentBox)
         self.pop.content.add_widget(BoxLayout(size_hint=(1, 1)))
         botonesPop.add_widget(Button(text='Cancelar', background_color=(0.8,0.6,0.6),font_size= 20,on_press=self.cancelPop))
         botonesPop.add_widget(Button(text='Crear', background_color=(0.6,0.8,0.6),font_size= 20,on_press=self.nuevaColumnaCrear))
@@ -637,7 +644,7 @@ class DatabaseGUI(BoxLayout):
 
     def nuevaColumnaCrear(self,obj):
         strName = str(self.newColumnName.text)
-        print(strName)
+        #print(strName)
         content = Button(text='Aceptar', size_hint=(0.5, 0.5),font_size= 20)
         self.pop.dismiss(obj)
         if strName.strip() == '':
@@ -650,7 +657,7 @@ class DatabaseGUI(BoxLayout):
             content.bind(on_press=pop.dismiss)
             pop.open()
         else:
-            if self.documentos.state == 'down':
+            if self.documentos.active:
                     strName = strName + ".d"
             if strName in self.nombres:
                 pop = Popup(title='Ya exite un campo con el nombre: '+str(self.newColumnName.text),
@@ -773,6 +780,11 @@ class MenuBar(BoxLayout):
 
 class OcultarBarra(FloatLayout):
     pass
+
+class Search(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Search, self).__init__(**kwargs)
+        pass
 
 class Separador2(BoxLayout):
     pass

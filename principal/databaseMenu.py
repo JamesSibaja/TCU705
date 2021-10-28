@@ -8,7 +8,7 @@ Widget principal
 ================
 Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la aplicación
 '''
-#Widget principal
+#Widget principal 
 class DatabaseMenu(BoxLayout): 
     def __init__(self,upApp,base,aplicacion,userID,**kwargs):
         super(DatabaseMenu, self).__init__(**kwargs)
@@ -22,7 +22,7 @@ class DatabaseMenu(BoxLayout):
         #get the count of tables with the name 
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
-                            Database varchar(255) NOT NULL,
+                            Proyecto varchar(255) NOT NULL,
                             Columns varchar(255) NOT NULL
                         ) ''')
 
@@ -40,14 +40,14 @@ class DatabaseMenu(BoxLayout):
                             FOREIGN KEY (DatabaseID) REFERENCES database(ID)
                         ) ''')
         
-        # self.base.execute('''INSERT INTO users (UserName)
-        #                      VALUES ('Luis') ''')
+        self.base.execute('''INSERT INTO users (UserName)
+                             VALUES ('Luis') ''')
 
-        # self.base.execute('''INSERT INTO users (UserName)
-        #                      VALUES ('James') ''')
+        self.base.execute('''INSERT INTO users (UserName)
+                             VALUES ('James') ''')
 
-        # self.base.execute('''INSERT INTO users (UserName)
-        #                      VALUES ('Erick') ''')
+        self.base.execute('''INSERT INTO users (UserName)
+                             VALUES ('Erick') ''')
 
         self.conexion.commit()
         self.df = ['Database']
@@ -60,7 +60,7 @@ class DatabaseMenu(BoxLayout):
         self.conexion.close()
         self.conexion = sqlite3.connect(self.baseName)
         self.base = self.conexion.cursor()
-        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Database, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
+        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Proyecto, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
         self.conexion.commit()
         self.clear_widgets()
         self.numPag = 0
@@ -71,6 +71,8 @@ class DatabaseMenu(BoxLayout):
         self.nuevaBase = False
         self.tablas = False
         self.select = False
+
+        self.search = Search(on_press=self.salir)
         self.infoTextBox =[]
         self.success = False
         self.editar = False
@@ -155,23 +157,28 @@ class DatabaseMenu(BoxLayout):
     def menubarBuilder(self):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
-        self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= self.nameTitle))
+        # self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
+        # self.MenuMain.add_widget(ToolbarTitleText(texto= self.nameTitle))
         contOpt = 0
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
                 option.main = True
             contOpt = contOpt + 1
 
-        self.barraMenu.add_widget(self.MenuMain)
+        #self.barraMenu.add_widget(self.MenuMain)
+        self.barraMenu.add_widget(ToolbarShow(on_press=self.toolbarHide))
         self.barraMenu.add_widget(SeparadorH())     
         contOpt = 0
         for option in self.submitOptions:
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1  
-        self.barraMenu.add_widget(self.exit)      
+            contOpt = contOpt + 1    
+         
+        self.barraMenu.add_widget(SeparadorH())  
+        self.barraMenu.add_widget(ToolbarTitleText(texto= self.nameTitle)) 
+        self.barraMenu.add_widget(self.search)
+        self.barraMenu.add_widget(self.exit)  
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -224,14 +231,13 @@ class DatabaseMenu(BoxLayout):
                             
                             if cont != -1:
                                 self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
-                                if self.nombres[cont] == 'Database':
+                                if self.nombres[cont] == 'Proyecto':
                                     self.selectBase = str(text)
                                 if self.nombres[cont] == 'Permiso':
                                     if text == 'Editar':
                                         self.selectEdit = True
                                     else:
                                         self.selectEdit = False
-                                    print('el texto '+str(text))
                                 if self.editar:
                                     self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
                                 else:
@@ -558,11 +564,13 @@ class NewDocument(FloatLayout):
         self.aplicacion.nombreArchivo = self.name.text
         self.add_widget(Label(text='Arrastre un documento',color=(0.75,0.35,0.35),size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475}))
         
-        
-
-
 class OcultarBarra(FloatLayout):
     pass
+
+class Search(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Search, self).__init__(**kwargs)
+        pass
 
 class Separador2(BoxLayout):
     pass

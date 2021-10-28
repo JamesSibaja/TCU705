@@ -25,3 +25,4 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.popup import Popup
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.checkbox import CheckBox

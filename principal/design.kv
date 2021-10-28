@@ -233,7 +233,7 @@
 <Exit>:
     size_hint_y:1
     size_hint_x:None
-    width:35
+    width:25
     source:'imagenes/salir.png'
         
 <Fila>:
@@ -388,6 +388,11 @@
             size: self.size
             pos: self.pos
 
+<Search>:
+    size_hint_y:1
+    size_hint_x:None
+    width:25
+    source:'imagenes/buscar.png'
 
 <Separador>:
     orientation: 'vertical'
@@ -637,19 +642,19 @@
 
     canvas.before:
         Color:
-            rgb: 0.7,0.72,0.72
+            rgb: 0.7,0.7,0.7
         
-    #     Rectangle:
-    #         size: self.size
-    #         pos: self.pos
-        Ellipse:
-            pos: self.pos
-            size: self.r,self.r
-            segments: 360
-        Ellipse:
-            pos: self.pos[0] +self.size[0]- self.r,self.pos[1]
-            segments: 360
-            size: self.r,self.r
+        # Rectangle:
+        #     size: self.size
+        #     pos: self.pos
+        # Ellipse:
+        #     pos: self.pos
+        #     size: self.r,self.r
+        #     segments: 360
+        # Ellipse:
+        #     pos: self.pos[0] +self.size[0]- self.r,self.pos[1]
+        #     segments: 360
+        #     size: self.r,self.r
         # Ellipse:
         #     pos: self.pos[0],self.pos[1]+self.size[1]-self.r
         #     size: self.r,self.r
@@ -659,18 +664,18 @@
         #     size: self.r,self.r
         #     segments: 360
         Rectangle:
-            size: self.size[0] -  self.r, self.size[1]
-            pos: self.pos[0]+(self.r/2),self.pos[1]
-        Rectangle:
-            size: self.size[0],self.size[1]
-            pos: self.pos[0],self.pos[1]+self.r/2
+            size: self.size[0] , self.size[1]+self.r/2
+            pos: self.pos[0],self.pos[1]
+        # Rectangle:
+        #     size: self.size[0], self.r/2
+        #     pos: self.pos[0],self.pos[1]+self.r/2
 
     Label:
         text: root.g
         halign:'center' 
         padding: (10,0) 
-        valign:'top'
+        valign:'middle'
         font_size:16
         text_size:self.size
-        color:  1,1,1,1
+        color:  1,1,1
         bold: True
