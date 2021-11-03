@@ -50,7 +50,7 @@ class DatabaseMenu(BoxLayout):
                              VALUES ('Erick') ''')
 
         self.conexion.commit()
-        self.df = ['Database']
+        self.df = ['Proyecto'] #Mejorar ya que esta linea prodia no ser necesaria
         self.build()
         
 
@@ -72,7 +72,7 @@ class DatabaseMenu(BoxLayout):
         self.tablas = False
         self.select = False
 
-        self.search = Search(on_press=self.salir)
+        self.search = Search(on_press=self.buscar)
         self.infoTextBox =[]
         self.success = False
         self.editar = False
@@ -213,13 +213,13 @@ class DatabaseMenu(BoxLayout):
                     primero = False
 
             else:
-                #Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
-                self.contenedor.stack.add_widget(Title3("Ingrese termino de busqueda"))
-                self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
-                self.contenedor.stack.add_widget(self.busqueda_gen)
-                self.contenedor.stack.add_widget(Separador())
-                self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                self.contenedor.stack.add_widget(Separador2())                            
+                ##Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
+                # self.contenedor.stack.add_widget(Title3("Ingrese termino de busqueda"))
+                # self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
+                # self.contenedor.stack.add_widget(self.busqueda_gen)
+                # self.contenedor.stack.add_widget(Separador())
+                # self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
+                # self.contenedor.stack.add_widget(Separador2())                            
                           
                 self.createLista()
                 cont = -1
@@ -250,6 +250,10 @@ class DatabaseMenu(BoxLayout):
                             cont = cont + 1
                     self.contenedor.stack.add_widget(Title2('')) 
                     self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
+                else:
+                    self.cuadroTexto = BoxLayout(size_hint= (1, None), height= 500)
+                    self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='middle',text_size=self.size)) 
+                    self.contenedor.stack.add_widget(self.cuadroTexto) 
         self.contenedor.add_widget(self.contenedor.stack)
 
     def addUser(self,obj):
@@ -414,15 +418,32 @@ class DatabaseMenu(BoxLayout):
         self.pagebarBuilder(0,True)
         self.listaFiltros = self.listaFiltros2
         self.filtros = self.filtros2
+        self.pop.dismiss(obj)
                 
     def perfil(self,obj):
         self.menuTitle=2
         self.menubarBuilder()        
         self.editarPerfil = True
         self.nuevaBase = False
-        self.toolbar.show = False
+        self.toolbar.show = False 
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
+
+    def buscar(self,obj):
+
+        self.busqueda_gen = TextInput(hint_text='Ingrese termino de busqueda',size_hint_y=None,height=45)
+        botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        self.pop = Popup(title='Busqueda rápida',
+                content=BoxLayout(padding=(10,0),orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 200))
+        self.pop.content.add_widget(self.busqueda_gen)
+        botonesPop.add_widget(Button(text='Cancelar', font_size= 20,on_press=self.cancelPop))
+        botonesPop.add_widget(Button(text='Buscar', background_color=(0.6,0.6,0.8),font_size= 20,on_press=self.buscar_gen))
+        self.pop.content.add_widget(botonesPop)
+        self.pop.open()  
 
     def salir(self,obj):
         botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')

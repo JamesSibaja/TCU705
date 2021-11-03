@@ -242,7 +242,7 @@
     height:60
     canvas.before:
         Color:
-            rgb: (0.83+self.dark,0.83+self.dark,0.9-self.dark) if root.color else (0.9+self.dark,0.9+self.dark,0.95-self.dark)
+            rgb: (0.83-self.dark,0.83-self.dark,0.9+self.dark) if root.color else (0.9-self.dark,0.9-self.dark,0.95+self.dark)
         Rectangle:
             size:self.size
             pos:self.pos
