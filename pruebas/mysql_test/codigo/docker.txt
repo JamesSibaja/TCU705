@@ -1,0 +1,9 @@
+docker run \
+--name mysql_plataforma \
+-p 3306:3306 \
+-e MYSQL_ROOT_PASSWORD=testprueba \
+-e MYSQL_DATABASE=users \
+-e MYSQL_USER=TCU \
+-e MYSQL_PASSWORD=1234 \
+-v $(pwd)/datos:/var/lib/mysql \
+mysql:5.7.32
