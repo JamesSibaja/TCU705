@@ -18,19 +18,19 @@ class passw_manager:
         self.data.commit()
         self.data.close()
 
-    def comparar(self, usuario, password):
+    def comparar(self, username, password):
         self.data = sqlite3.connect(self.base)
 
         c = self.data.cursor()
 
         c.execute('''SELECT * 
                     FROM passwords 
-                    WHERE (username = ?)''', (sha256(usuario.encode()).hexdigest(),))
+                    WHERE (username = ?)''', (username,))
 
         rows = c.fetchall()
 
         for r in rows:
-            if r[0] == sha256(usuario.encode()).hexdigest() and r[1] == sha256(password.encode()).hexdigest():
+            if r[0] == username and r[1] == sha256(password.encode()).hexdigest():
                 self.data.commit()
                 self.data.close()
                 return True

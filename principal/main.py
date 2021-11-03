@@ -9,6 +9,10 @@ la UCR. La aplicación consiste en una plataforma con interfaz gráfica que perm
 y segura de bases de datos.
 '''
 
+from kivy.config import Config
+Config.set('graphics', 'minimum_width', '800')
+Config.set('graphics', 'minimum_height', '600')
+
 from lib import *
 from startMenu import StartMenu
 from databaseGUI import DatabaseGUI

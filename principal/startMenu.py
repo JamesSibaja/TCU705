@@ -60,8 +60,7 @@ class MenuInicial(FloatLayout):
         self.user.focus_next =self.password
         self.password.focus_next = self.user
 
-        # self.user.set_next(self.password)
-        # self.password.set_next(self.user)
+
 
 
 
