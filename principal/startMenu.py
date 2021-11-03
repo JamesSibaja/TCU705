@@ -41,27 +41,26 @@ class MenuInicial(FloatLayout):
         self.contrasenas_manager = passw_manager('base') # Se conecta al controlador de contrasenas por medio de un objeto diferente
 
     def build(self, *args):
-        self.add_widget(Label(text="Nombre de usuario", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.7}))
 
-        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.5, 'y':.7}, multiline=False, write_tab= False)
+        # self.add_widget(Label(text="Nombre de usuario", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.7}))
+        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.6}, multiline=False, write_tab= False, hint_text="Nombre de usuario")
         self.add_widget(self.user)
 
-        self.add_widget(Label(text="Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.5}))
-        self.password = TextInput(password=True, size_hint=(.4, .05),  pos_hint={'x':.5, 'y':.5}, multiline=False, write_tab= False, on_text_validate=self.loggin)
+        # self.add_widget(Label(text="Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.5}))
+        self.password = TextInput(hint_text="Contraseña",password=True, size_hint=(.4, .05),  pos_hint={'x':.3, 'y':.5}, multiline=False, write_tab= False, on_text_validate=self.loggin)
         self.add_widget(self.password)
 
-        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.15, 'y':.2},on_press=self.loggin)
+        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.35},on_press=self.loggin)
         self.add_widget(self.submit)
 
-        self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.55, 'y':.2},on_press=self.btn_register)
+        self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.25},on_press=self.btn_register)
         self.add_widget(self.register)
 
         # Comandos empleados para la funcionalidad Focus, pasar entre inputs con el "TAB"
         self.user.focus_next =self.password
         self.password.focus_next = self.user
 
-        # self.user.set_next(self.password)
-        # self.password.set_next(self.user)
+
 
 
 

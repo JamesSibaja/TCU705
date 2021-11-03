@@ -10,25 +10,33 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseGUI(BoxLayout): 
-    def __init__(self,base,table,aplicacion):
-        super(DatabaseGUI, self).__init__()
+    def __init__(self,base,upApp,table,aplicacion,edit,**kwargs):
+        super(DatabaseGUI, self).__init__(**kwargs)
 
         self.conexion = sqlite3.connect(base)
+        self.upApp = upApp
         self.base = self.conexion.cursor()
         self.aplicacion = aplicacion
-        self.table = table  
+        self.table = table 
+        self.edit = edit 
+        self.base.execute("SELECT Columns From `database` WHERE Database = '"+self.table+"'")
+        self.columns = self.base.fetchall()[0][0]
+        print(self.columns)
+        #self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
         self.build()
-        #self.df = df
+        #self.df = dfpop
 
-    #Constructor de la ventana principal
+    #Constructor de la ventana principal 
     def build(self):
         self.clear_widgets()
         self.numPag = 0
         self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
+        self.exit = Exit(on_press=self.salir)
         #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
         self.infoTextBox =[]
+        self.newColumnName = ''
         self.menuFiltro = False
         self.editPDF = False
         self.estadisticas = False
@@ -47,19 +55,23 @@ class DatabaseGUI(BoxLayout):
         self.filtros = []
         self.filtros2 = []
         self.campos = []
-        self.nombres = list(map(lambda x: x[0], self.base.execute('select * from '+ self.table).description))
+        self.nombres = list(map(lambda x: x[0], self.base.execute("select * from `"+ self.table+"`").description))
         self.index = self.nombres[0]
         self.nombres.pop(0)
         contCampos=0
         for selectField in self.nombres:
-            if(contCampos < 3 ):
-                self.camposOpcion.append(True)
-                self.campos.append(str(selectField))
+            if contCampos < len(self.columns):
+                if self.columns[contCampos]=='1':
+                    self.camposOpcion.append(True)
+                    self.campos.append(str(selectField))
+                else:
+                    self.camposOpcion.append(False)
             else:
+                self.columns = self.columns + '0'
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
@@ -76,7 +88,10 @@ class DatabaseGUI(BoxLayout):
         self.barraMenu = MenuBar()
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Ver',on_press=self.volverMenu))
-        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
+        if self.edit:
+            self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.editarMenu))
+        else:
+            self.submitOptions.append(ToolbarText2(texto = 'Editar'))
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
@@ -125,7 +140,8 @@ class DatabaseGUI(BoxLayout):
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1        
+            contOpt = contOpt + 1    
+        self.barraMenu.add_widget(self.exit) 
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -240,6 +256,8 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
                     self.contenedor.stack.add_widget(Separador2())   
                     #self.contenedor.stack.add_widget(Separador2())
+                    if self.editar:
+                        self.contenedor.stack.add_widget(ButtonMain(texto = 'Agregar columna',on_press=self.nuevaColumna))
                     cont = -1
                     self.infoTextBo=[]
                     if self.select:         
@@ -259,12 +277,14 @@ class DatabaseGUI(BoxLayout):
                                         self.contenedor.stack.add_widget(Separador())
                                         self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
                                 cont = cont + 1
+                        self.contenedor.stack.add_widget(Separador())
                         self.contenedor.stack.add_widget(Title2('')) 
 
         self.contenedor.add_widget(self.contenedor.stack)
 
     def editarCampo(self,obj): #Función que cambia las columnas que se muestran*
-        filtro = "UPDATE "+self.table+" SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
+        filtro = "UPDATE `"+self.table+"` SET `"+ obj.title +"` = '"+ self.infoTextBox[obj.input].text +"' WHERE `" + self.index + "` = '" + str(self.lista.id) +"'"
+        print(filtro)
         self.base.execute(filtro)
         self.conexion.commit()
         self.buscar()
@@ -407,16 +427,15 @@ class DatabaseGUI(BoxLayout):
             contColum += 1
         self.filaTitulo.clear_widgets()
         for selectField in self.campos:
-            self.filaTitulo.add_widget(TitleField(selectField))
+            self.filaTitulo.add_widget(TitleField(selectField.rstrip('.d')))
         self.numPag=0   
         self.lista.reset()
         self.lista.build(entrada=self.campos,filtros= self.listaFiltros,pag=self.numPag,busqueda=self.filtros) 
         self.pagebarBuilder(0,True) 
         if self.tablas:
             filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-            for x in self.base.execute(filtro):
-                        for y in x:
-                            self.lista.totalDatos=y
+            self.base.execute(filtro)
+            self.lista.totalDatos = self.base.fetchall()[0][0]
         self.tablas = False
 
     def buscar(self,obj=None): #Función que filtra la base
@@ -425,10 +444,9 @@ class DatabaseGUI(BoxLayout):
         self.numPag=0
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-        for x in self.base.execute(filtro):
-                    for y in x:
-                        self.lista.totalDatos=y
-                        self.lista.totalDatos2=y
+        self.base.execute(filtro)
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.base.fetchall()[0][0]
         self.pagebarBuilder(0,True)
 
     def buscar_gen(self,obj=None): #Función que filtra la base de forma general (busca en todos los campos)
@@ -445,10 +463,9 @@ class DatabaseGUI(BoxLayout):
             self.filtros.append(self.busqueda_gen)
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros,general=True)
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-        for x in self.base.execute(filtro):
-                    for y in x:
-                        self.lista.totalDatos=y
-                        self.lista.totalDatos2=y
+        self.base.execute(filtro)
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.base.fetchall()[0][0]
         self.pagebarBuilder(0,True)
         self.listaFiltros = self.listaFiltros2
         self.filtros = self.filtros2
@@ -522,6 +539,10 @@ class DatabaseGUI(BoxLayout):
             for field in self.nombres:
                 if(field == obj.g):
                     self.camposOpcion[contTitulo] = not self.camposOpcion[contTitulo]
+                    if self.camposOpcion[contTitulo]:
+                        self.columns = self.columns[:contTitulo] + '1' + self.columns[contTitulo+1:]
+                    else:
+                        self.columns = self.columns[:contTitulo] + '0' + self.columns[contTitulo+1:]
                     obj.c = not obj.c
                 contTitulo += 1 
 
@@ -539,10 +560,9 @@ class DatabaseGUI(BoxLayout):
         self.nuevoFiltro = False
         self.newEst = False
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
-        for x in self.base.execute(filtro):
-                    for y in x:
-                        self.lista.totalDatos=y
-                        self.lista.totalDatos2=y
+        self.base.execute(filtro)
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.base.fetchall()[0][0]
         if self.menuTitle==4:
             self.volverMenu(obj)
         else:
@@ -565,7 +585,13 @@ class DatabaseGUI(BoxLayout):
                     self.listaFiltros.append(str(field))
                 contFiltro += 1
         if self.cambiarCampo:
+            print(self.columns)
+            filtro = "UPDATE `database` SET `Columns` = '"+ self.columns +"' WHERE `Database` = '" + self.table +"'"
+            print(filtro)
+            self.base.execute(filtro)
+            self.conexion.commit()
             self.volverMenu(obj)
+            
         else:
             self.cambiarCampo = False
             self.nuevoFiltro = False
@@ -585,6 +611,63 @@ class DatabaseGUI(BoxLayout):
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
+
+    def nuevaColumna(self,obj):
+        self.newColumnName = TextInput(size_hint=(1, None),height=35,hint_text="Nombre de columna")
+        self.documentos = ToggleButton(size_hint=(1, None),height=30,text='Campo de documento')
+        botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        self.pop = Popup(title='Agregar un nuevo campo a la base',
+                content=BoxLayout(padding=(10,0),orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 200))
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=10))
+        self.pop.content.add_widget(self.newColumnName)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=10))
+        self.pop.content.add_widget(self.documentos)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, 1)))
+        botonesPop.add_widget(Button(text='Cancelar', background_color=(0.8,0.6,0.6),font_size= 20,on_press=self.cancelPop))
+        botonesPop.add_widget(Button(text='Crear', background_color=(0.6,0.8,0.6),font_size= 20,on_press=self.nuevaColumnaCrear))
+        self.pop.content.add_widget(botonesPop)
+        self.pop.open()
+
+    def cancelPop(self,obj):
+        self.pop.dismiss(obj)
+
+    def nuevaColumnaCrear(self,obj):
+        strName = str(self.newColumnName.text)
+        print(strName)
+        content = Button(text='Aceptar', size_hint=(0.5, 0.5),font_size= 20)
+        self.pop.dismiss(obj)
+        if strName.strip() == '':
+            pop = Popup(title='El nombre de campo no es valido',
+                    content=content,
+                    title_align = 'center',
+                    title_size = '20',
+                    auto_dismiss=False,
+                    size_hint=(None, None), size=(350, 200))
+            content.bind(on_press=pop.dismiss)
+            pop.open()
+        else:
+            if self.documentos.state == 'down':
+                    strName = strName + ".d"
+            if strName in self.nombres:
+                pop = Popup(title='Ya exite un campo con el nombre: '+str(self.newColumnName.text),
+                    content=content,
+                    title_align = 'center',
+                    title_size = '20',
+                    auto_dismiss=False,
+                    size_hint=(None, None), size=(350, 200))
+                content.bind(on_press=pop.dismiss)
+                pop.open()
+            else:        
+                self.nombres.append(strName)
+                self.camposOpcion.append(False)
+                self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+strName+"` TEXT")
+
+    def salir(self,obj):
+        self.upApp.build(3)
 
 def on_enter(instance, value):
     print('User pressed enter in', instance)
@@ -658,6 +741,11 @@ class Divisor(BoxLayout):
 
 class EstBox(BoxLayout):
     pass
+
+class Exit(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Exit, self).__init__(**kwargs)
+        pass
 
 class FilaPag(BoxLayout):
     r = NumericProperty()
@@ -756,6 +844,16 @@ class ToolbarText(ButtonBehavior,BoxLayout):
     r = NumericProperty()
     def __init__(self,texto,main=False,r=16,**kwargs):
         super(ToolbarText, self).__init__(**kwargs)
+        self.g = texto
+        self.main = main
+        self.r = r
+
+class ToolbarText2(ButtonBehavior,BoxLayout):
+    g = StringProperty()
+    main = BooleanProperty()
+    r = NumericProperty()
+    def __init__(self,texto,main=False,r=16,**kwargs):
+        super(ToolbarText2, self).__init__(**kwargs)
         self.g = texto
         self.main = main
         self.r = r

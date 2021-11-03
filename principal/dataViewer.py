@@ -9,10 +9,11 @@ Diferentes widgets que complementan la ventana principal y conforman la interfaz
 #Widget que muestra los datos solicitados de la base de datos
 class DataViewer(ScrollView):
     end = BooleanProperty()
-    def __init__(self,index,entrada,base,table,aplicacion,conexion,pag=0):
+    def __init__(self,upapp,index,entrada,base,table,aplicacion,conexion,pag=0,user = False):
         super(DataViewer, self).__init__()
         self.editar=False
         self.index = index
+        self.upapp = upapp
         self.totalDatos = 0
         self.table = table
         self.filtroWhere = ''
@@ -21,7 +22,7 @@ class DataViewer(ScrollView):
         self.conexion = conexion
         self.calcEst = ''
         self.base = base
-        for row in self.base.execute('SELECT * From '+ self.table):
+        for row in self.base.execute("SELECT * From `"+ self.table+"`"):
             self.totalDatos += 1
         self.total = self.totalDatos
         self.totalDatos2 = self.totalDatos
@@ -36,12 +37,12 @@ class DataViewer(ScrollView):
     #Constructor del data viewer
     def build(self,entrada,pag,filtros=[],busqueda=[],imagen=False, general=False):
         self.scroll_y=1
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.aplicacion.agregar = True
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
-        PDF = (False,0)
+        PDF = []
         color = True
         cont = 0
         self.filtroSelect = "SELECT `"+ self.index +"`"
@@ -50,13 +51,15 @@ class DataViewer(ScrollView):
             if (n == 0):
                 self.filtroSelect += ", "
             self.filtroSelect += "`" + str(selectField) + "`"
-            if (selectField == 'PDF'):
-                PDF = (True,n)
+            if (selectField.endswith('.d')):
+                PDF.append(True)
+            else:
+                PDF.append(False)
             if(selectField != entrada[len(entrada)-1]):
                 self.filtroSelect += ", "
             n += 1
             
-        self.filtroWhere =" FROM "+ self.table
+        self.filtroWhere =" FROM `"+ self.table+'`'
         n=0
         primero=True
         for elemento in busqueda:
@@ -91,17 +94,17 @@ class DataViewer(ScrollView):
                 else:    
                     if isinstance(x,float):
                         x=int(x)
-                    if PDF[0] and columnas == PDF[1]:
+                    if PDF[columnas]:
                         if self.editar:
                             if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,doc=entrada[columnas],table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
                             else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,doc=entrada[columnas],table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,editar=True,index=self.index))
                         else:
                             if x == None or x == '':
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(True,indexID,doc=entrada[columnas],table = self.table,conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
                             else:
-                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
+                                self.filas[len(self.filas)-1].add_widget(campoBD2(False,indexID,doc=entrada[columnas],table = self.table,path=str(x),conexion=self.conexion,base=self.base,aplicacion=self.aplicacion,pag=pag,index=self.index))
                         
                     else:
                         self.filas[len(self.filas)-1].add_widget(campoBD1(str(x),cont,indexID,entrada[columnas],on_press=self.info))
@@ -131,18 +134,18 @@ class DataViewer(ScrollView):
             self.filas[self.select].canvas.ask_update()
         self.select = obj.num
         if self.filas[obj.num].dark == 0.2:
-            self.aplicacion.pantalla.window.select = True
+            self.upapp.select = True
             self.information = []
-            print('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'")
-            for row in self.base.execute('SELECT * From '+ self.table+' WHERE `' + self.index + "` = '" + str(self.id) +"'"):
+            print('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'")
+            for row in self.base.execute('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
             
         else:
-            self.aplicacion.pantalla.window.select = False
-        self.aplicacion.pantalla.window.toolbarBuilder()
+            self.upapp.select = False
+        self.upapp.toolbarBuilder()
 
     def calcAct(self,pag=0):#Actualizar la página del calculo de estadísticas
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.scroll_y=1
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
@@ -164,7 +167,7 @@ class DataViewer(ScrollView):
         self.add_widget(self.contenedor)
 
     def calc(self,text,filtroAct,pag=0): #Realizar el calculo de la estadística según las opciones escogidas
-        self.aplicacion.pantalla.window.select=False
+        self.upapp.select=False
         self.scroll_y=1
         self.calculando = text
         self.contenedor=DataViewerContainer()
@@ -173,7 +176,7 @@ class DataViewer(ScrollView):
         if filtroAct:
             filtro = "SELECT `"+ str(text) +"` " + self.filtroWhere
         else:
-            filtro = "SELECT `"+ str(text) +"` FROM "+ self.table
+            filtro = "SELECT `"+ str(text) +"` FROM `"+ self.table +'`'
         
         data = pd.read_sql_query(filtro, self.conexion)
         data=pd.unique(data[str(text)])
@@ -194,7 +197,7 @@ class DataViewer(ScrollView):
         self.contenedor=DataViewerContainer()
         self.contenedor.bind(minimum_height=self.contenedor.setter('height'))
         self.filas=[]
- 
+
         self.listEst=[]
         palabras=""
         self.totalDatos=len(data3)
@@ -203,7 +206,7 @@ class DataViewer(ScrollView):
                 if filtroAct:
                     filtro2 = "SELECT COUNT(`"+ str(text) +"`) "+self.filtroWhere
                 else:
-                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM "+ self.table+" WHERE "
+                    filtro2 = "SELECT COUNT(`"+ str(text) +"`) FROM `"+ self.table+"` WHERE "
                 primero = True
                 for palabra in diferente:
                     palabras += str(palabra)+" "
@@ -225,8 +228,8 @@ class DataViewer(ScrollView):
         self.calcAct(pag)
 
     #Función para agregar PDF
-    def insertPdf(self,fileName,idNum):
-        filtro = "UPDATE "+ self.table+" SET PDF = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
+    def insertPdf(self,fileName,idNum,doc):
+        filtro = "UPDATE `"+ self.table+"` SET `"+str(doc)+"` = '" + str(fileName) + "' WHERE `" + self.index + "` = '" + str(idNum) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
 
@@ -248,7 +251,7 @@ class campoBD1(ButtonBehavior,BoxLayout):
     g = StringProperty()
     col = StringProperty()
     num = NumericProperty()
-    def __init__(self,texto,num,idNum=0,campo='',**kwargs):
+    def __init__(self,texto,num,idNum='',campo='',**kwargs):
         super(campoBD1, self).__init__(**kwargs)
         self.g = texto
         self.col = campo
@@ -268,9 +271,10 @@ class campoBD2(BoxLayout):
     edit = BooleanProperty()
     ID = NumericProperty()
     pag = NumericProperty()
-    def __init__(self,pdf,idNum,conexion,base,aplicacion,table,path='',pag=0,editar=False,index = 'index'):
+    def __init__(self,pdf,idNum,doc,conexion,base,aplicacion,table,path='',pag=0,editar=False,index = 'index'):
         super(campoBD2, self).__init__()
         self.pdf = pdf
+        self.doc = doc
         self.ID = idNum
         self.g = path
         self.pag = pag
@@ -285,13 +289,14 @@ class campoBD2(BoxLayout):
         if (self.aplicacion.agregar):
             self.aplicacion.archivo = self.ID
             self.aplicacion.pag = self.pag
+            self.aplicacion.doc = self.doc
             self.aplicacion.SubiendoArchivo = True
             self.clear_widgets()
             self.add_widget(Label(text='Arrastrar archivo',color=(0.8,0,0)))
             self.aplicacion.agregar=False
 
     def delete(self):
-        filtro = "UPDATE "+ self.table+" SET PDF = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
+        filtro = "UPDATE `"+ self.table+"` SET `"+str(self.doc)+"` = '' WHERE `" + self.index + "` = '" + str(self.ID) +"'"
         self.base.execute(filtro)
         self.conexion.commit()
         self.aplicacion.buildList()

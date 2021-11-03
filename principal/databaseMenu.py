@@ -10,17 +10,20 @@ Widget asociado a la totalidad de la ventana donde se presenta la interfaz de la
 '''
 #Widget principal
 class DatabaseMenu(BoxLayout): 
-    def __init__(self, upApp,base,aplicacion):
-        super(DatabaseMenu, self).__init__()
-        self.conexion = sqlite3.connect(base)
+    def __init__(self,upApp,base,aplicacion,userID,**kwargs):
+        super(DatabaseMenu, self).__init__(**kwargs)
+        self.baseName = base
+        self.conexion = sqlite3.connect(self.baseName)
         self.base = self.conexion.cursor()
+        self.userID = userID
         self.aplicacion = aplicacion
-        self.table = 'database'   
+        self.table = 'myDatabases'   
         self.upApp = upApp
-        #get the count of tables with the name
+        #get the count of tables with the name 
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
-                            Database varchar(255) NOT NULL
+                            Database varchar(255) NOT NULL,
+                            Columns varchar(255) NOT NULL
                         ) ''')
 
         self.base.execute('''CREATE TABLE IF NOT EXISTS users(
@@ -32,10 +35,11 @@ class DatabaseMenu(BoxLayout):
                             ID INTEGER primary key autoincrement,
                             UserID INTEGER NOT NULL,
                             DatabaseID INTEGER NOT NULL,
+                            Permiso varchar(255) NOT NULL,
                             FOREIGN KEY (UserID) REFERENCES users(ID),
                             FOREIGN KEY (DatabaseID) REFERENCES database(ID)
                         ) ''')
-
+        
         # self.base.execute('''INSERT INTO users (UserName)
         #                      VALUES ('Luis') ''')
 
@@ -52,8 +56,15 @@ class DatabaseMenu(BoxLayout):
 
     #Constructor de la ventana principal
     def build(self):
+        self.base.close()
+        self.conexion.close()
+        self.conexion = sqlite3.connect(self.baseName)
+        self.base = self.conexion.cursor()
+        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Database, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
+        self.conexion.commit()
         self.clear_widgets()
         self.numPag = 0
+        self.exit = Exit(on_press=self.salir)
         self.selectBase = ''
         self.MenuMain = ToolbarTitle()
         self.editarPerfil = False
@@ -63,12 +74,17 @@ class DatabaseMenu(BoxLayout):
         self.infoTextBox =[]
         self.success = False
         self.editar = False
+        self.selectEdit = False
         self.datoCalc = ""
         self.menuTitle =0
         self.toolbar = Toolbar()
         self.contenedor = ToolbarSub() 
-        self.colaboradores =[]
-        self.colaboradoresID =[]
+        self.base.execute("select UserName from users where ID = "+ str(self.userID))
+        self.nameTitle = self.base.fetchall()[0][0]
+
+        self.colaboradores =[self.nameTitle]
+        self.colaboradoresID =[self.userID]
+        self.compartirID =[]
         self.filaTitulo = FilaTitulo()
         self.pagina = FilaPag()
         self.listaFiltros =[]
@@ -83,17 +99,18 @@ class DatabaseMenu(BoxLayout):
         self.nombres.pop(0)
         contCampos=0
         for selectField in self.nombres:
-            if(contCampos < 3 ):
+            if selectField !='Columns':
                 self.camposOpcion.append(True)
                 self.campos.append(str(selectField))
             else:
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
-        self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
+        self.pagebarBuilder(0,True)
+        #self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
         self.contenedorLista = BoxLayout(padding = 10,orientation= 'vertical')
         for selectField in self.campos:
             self.filaTitulo.add_widget(TitleField(selectField))
@@ -105,7 +122,7 @@ class DatabaseMenu(BoxLayout):
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Seleccionar',on_press=self.openBase))
         self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))
-        self.submitOptions.append(ToolbarText(texto = 'Perfil',on_press=self.perfil))#
+        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.perfil))#
         # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
@@ -120,7 +137,8 @@ class DatabaseMenu(BoxLayout):
         self.pantalla.add_widget(self.contenedorLista)
         self.add_widget(self.barraMenu)
         self.add_widget(self.pantalla)
-
+        self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
+        
         self.toolbarBuilder()
 
     #Función que esconde la barra de herramientas
@@ -138,8 +156,7 @@ class DatabaseMenu(BoxLayout):
         self.barraMenu.clear_widgets()
         self.MenuMain.clear_widgets()
         self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
-        self.MenuMain.add_widget(ToolbarTitleText(texto= 'Usuario'))
-        
+        self.MenuMain.add_widget(ToolbarTitleText(texto= self.nameTitle))
         contOpt = 0
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
@@ -153,7 +170,8 @@ class DatabaseMenu(BoxLayout):
             self.barraMenu.add_widget(option)
             if not (self.menuTitle==contOpt):
                 option.main = False
-            contOpt = contOpt + 1        
+            contOpt = contOpt + 1  
+        self.barraMenu.add_widget(self.exit)      
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -173,13 +191,19 @@ class DatabaseMenu(BoxLayout):
                 self.contenedorLista.add_widget(NewDocument(self.aplicacion))
                 self.contenedor.stack.add_widget(Title3("Agregar colaborador"))
                 self.newUser = TextInput(text='',size_hint_y=None,height=45)
+                self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
                 self.contenedor.stack.add_widget(self.newUser)
+                self.contenedor.stack.add_widget(Separador())
+                self.contenedor.stack.add_widget(self.permisoEditar) 
                 self.contenedor.stack.add_widget(Separador())
                 self.contenedor.stack.add_widget(ButtonAccept(texto = 'Verificar',on_press=self.addUser))
                 self.contenedor.stack.add_widget(Separador2()) 
-
+                
+                primero = True
                 for user in self.colaboradores: 
-                    self.contenedor.stack.add_widget(Title2(user))
+                    if not primero:
+                        self.contenedor.stack.add_widget(Title2(user))
+                    primero = False
 
             else:
                 #Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
@@ -202,6 +226,12 @@ class DatabaseMenu(BoxLayout):
                                 self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
                                 if self.nombres[cont] == 'Database':
                                     self.selectBase = str(text)
+                                if self.nombres[cont] == 'Permiso':
+                                    if text == 'Editar':
+                                        self.selectEdit = True
+                                    else:
+                                        self.selectEdit = False
+                                    print('el texto '+str(text))
                                 if self.editar:
                                     self.infoTextBox.append(TextInput(text=str(text),size_hint_y=None,height=70,background_color=(0.9,0.9,0.9,1)))
                                 else:
@@ -218,6 +248,7 @@ class DatabaseMenu(BoxLayout):
 
     def addUser(self,obj):
         self.success = False
+        incluido = False
         ID = 0
         for r in self.base.execute('''SELECT ID, UserName FROM users'''):
             if r[1] == self.newUser.text:
@@ -225,25 +256,38 @@ class DatabaseMenu(BoxLayout):
                 ID = r[0] 
                 for user in self.colaboradores: 
                     if user == self.newUser.text:
+                        incluido = True
                         self.success = False
         if not self.success:
             content = Button(text='Aceptar', size_hint=(0.5, 0.5),font_size= 20)
-            pop = Popup(title='El nombre de usuario no se encuentra disponible',
-                    content=content,
-                    title_align = 'center',
-                    title_size = '20',
-                    auto_dismiss=False,
-                    size_hint=(None, None), size=(350, 200))
+            if incluido:
+                pop = Popup(title='El nombre de usuario ya está incluido',
+                        content=content,
+                        title_align = 'center',
+                        title_size = '20',
+                        auto_dismiss=False,
+                        size_hint=(None, None), size=(350, 200))
+            else:
+                pop = Popup(title='El nombre de usuario no se encuentra disponible',
+                        content=content,
+                        title_align = 'center',
+                        title_size = '20',
+                        auto_dismiss=False,
+                        size_hint=(None, None), size=(350, 200))
 
             content.bind(on_press=pop.dismiss)
             pop.open()
         else:
             self.colaboradores.append(self.newUser.text)
-            self.colaboradoresID.append(ID)
+            if self.permisoEditar.state == 'down':                
+                self.colaboradoresID.append(ID)
+            else:
+                self.compartirID.append(ID)
         self.toolbarBuilder()
 
+
     def open(self,obj):
-        self.upApp.build(2,table= self.selectBase)
+        self.upApp.build(2,table= self.selectBase,edit= self.selectEdit)
 
     def createLista(self):
         self.contenedorLista.add_widget(self.filaTitulo)
@@ -258,7 +302,13 @@ class DatabaseMenu(BoxLayout):
 
     def baseLink(self,baseID):
         for user in self.colaboradoresID:
-            self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID) VALUES ("+str(user)+","+str(baseID)+") ")
+            self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID,Permiso) VALUES ("+str(user)+","+str(baseID)+",'Editar') ")
+            self.conexion.commit()
+
+        for user in self.compartirID:
+            self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID,Permiso) VALUES ("+str(user)+","+str(baseID)+",'Ver') ")
+            self.conexion.commit()
+
         self.openBase('')
 
     def openBase(self,obj): #Función de la opción del menu ver
@@ -266,8 +316,7 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.editarPerfil = False
         self.nuevaBase = False
-        self.lista.reset()
-        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
+        self.build()
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.toolbarBuilder()
@@ -277,7 +326,8 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.editarPerfil = False
         self.nuevaBase = True
-        self.colaboradores = []
+        self.colaboradores =[self.nameTitle]
+        self.colaboradoresID =[self.userID]
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbar.show = False
@@ -368,6 +418,26 @@ class DatabaseMenu(BoxLayout):
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
 
+    def salir(self,obj):
+        botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        self.pop = Popup(title='Cerrar sesión',
+                content=BoxLayout(padding=(10,0),orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 125))
+        botonesPop.add_widget(Button(text='Continuar', font_size= 20,on_press=self.cancelPop))
+        botonesPop.add_widget(Button(text='Cerrar', font_size= 20,on_press=self.cerrarSesion))
+        self.pop.content.add_widget(botonesPop)
+        self.pop.open()
+
+    def cancelPop(self,obj):
+        self.pop.dismiss(obj)
+
+    def cerrarSesion(self,obj):
+        self.pop.dismiss(obj)
+        self.upApp.build(0)
+
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
@@ -440,6 +510,11 @@ class Divisor(BoxLayout):
 
 class EstBox(BoxLayout):
     pass
+
+class Exit(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Exit, self).__init__(**kwargs)
+        pass
 
 class FilaPag(BoxLayout):
     r = NumericProperty()
@@ -548,7 +623,7 @@ class ToolbarTitle(BoxLayout):
 class ToolbarTitleText(BoxLayout):
     g = StringProperty()
     r = NumericProperty()
-    def __init__(self,texto,r=16,**kwargs):
+    def __init__(self,texto,r=20,**kwargs):
         super(ToolbarTitleText, self).__init__(**kwargs)
         self.g = texto
         self.r = r
