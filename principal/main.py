@@ -57,9 +57,9 @@ class DatabaseGUIApp(App): #Aplicación principal
             self.SubiendoArchivo = False
             shutil.copy(file_path,self.nombreArchivo)
             #print(self.pag)
-            self.pantalla.window.lista.insertPdf(doc = self.doc,fileName=self.nombreArchivo,idNum=self.archivo)
-            self.pantalla.window.lista.reset()
-            self.pantalla.window.lista.build(entrada=self.pantalla.window.campos,pag=self.pag,filtros= self.pantalla.window.listaFiltros,busqueda=self.pantalla.window.filtros)
+            self.pantalla.baseWidget.lista.insertPdf(doc = self.doc,fileName=self.nombreArchivo,idNum=self.archivo)
+            self.pantalla.baseWidget.lista.reset()
+            self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
         if self.subiendoBase:
             table = self.nombreArchivo
             self.subiendoBase = False
@@ -69,18 +69,21 @@ class DatabaseGUIApp(App): #Aplicación principal
             df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
             c = miConexion.cursor()
             #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
-            c.execute("INSERT INTO database (Database,columns) VALUES ('"+self.nombreArchivo+"','111') ")
+            c.execute("INSERT INTO database (Proyecto,columns) VALUES ('"+self.nombreArchivo+"','111') ")
             miConexion.commit()
-            for x in c.execute("SELECT ID FROM database WHERE `Database` = '"+self.nombreArchivo+"'"):
+            for x in c.execute("SELECT ID FROM database WHERE `Proyecto` = '"+self.nombreArchivo+"'"):
                 for y in x:
-                    self.pantalla.window.baseLink(y)
+                    self.pantalla.menuWidget.baseLink(y)
             c.close
             miConexion.close
             #self.pantalla.window.lista.reset()
 
     def buildList(self):
-        self.pantalla.window.lista.reset()
-        self.pantalla.window.lista.build(entrada=self.pantalla.window.campos,pag=self.pag,filtros= self.pantalla.window.listaFiltros,busqueda=self.pantalla.window.filtros)
+        self.pantalla.baseWidget.lista.reset()
+        '''
+        Arreglar est linea
+        '''
+        self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
     
 
     def on_pause(self):
@@ -126,16 +129,20 @@ class MainWindow(BoxLayout):
         if currentWindow == 0:
             self.menu.clear_widgets()
             self.base.clear_widgets()
-            self.log.add_widget(StartMenu(upApp=self))
+            self.log.clear_widgets()
+            self.logWidget=StartMenu(upApp=self)
+            self.log.add_widget(self.logWidget)
             self.sm.current = 'log'
         elif currentWindow == 1: 
             self.userID = userID
-            self.menu.add_widget(DatabaseMenu(upApp=self,base='base',aplicacion = aplicacion,userID=userID))
+            self.menuWidget = DatabaseMenu(upApp=self,base='base',aplicacion = aplicacion,userID=userID)
+            self.menu.add_widget(self.menuWidget)
             self.sm.current = 'menu'
         elif currentWindow == 2:
             self.edit = edit
             self.table = table
-            self.base.add_widget(DatabaseGUI(upApp=self,base='base',table=table,aplicacion = aplicacion,edit=edit))
+            self.baseWidget = DatabaseGUI(upApp=self,base='base',table=table,aplicacion = aplicacion,edit=edit)
+            self.base.add_widget(self.baseWidget)
             self.sm.current = 'base'
         else:
             self.sm.current = 'menu'

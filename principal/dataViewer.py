@@ -136,7 +136,7 @@ class DataViewer(ScrollView):
         if self.filas[obj.num].dark == 0.2:
             self.upapp.select = True
             self.information = []
-            print('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'")
+            #print('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'")
             for row in self.base.execute('SELECT * From `'+ self.table+'` WHERE `' + self.index + "` = '" + str(self.id) +"'"):
                 self.information.append(row)
             

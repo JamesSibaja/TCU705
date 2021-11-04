@@ -8,13 +8,12 @@ from kivy.lang import Builder
 from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.graphics import *
+from kivy.uix.behaviors import ToggleButtonBehavior
 
 from contrasenas import passw_manager
 import re
 
-# from kivy.config import Config
-# Config.set('kivy', 'keyboard_mode', 'system')
-# Builder.load_file('designMenu.kv')
 
 #Widget principal
 class StartMenu(BoxLayout): 
@@ -95,8 +94,6 @@ class MenuInicial(FloatLayout):
         self.add_widget(self.pag_register)
 
 
-
-
 # Clase que contiene la pagina de registro
 class RegisterWindow(FloatLayout, FocusBehavior):
     def __init__(self, init_page):
@@ -104,25 +101,45 @@ class RegisterWindow(FloatLayout, FocusBehavior):
 
         self.init_page = init_page
         self.contrasenas_manager = passw_manager('base') # Se conecta al controlador de contrasenas por medio de un objeto diferente
+        
 
-        self.add_widget(Label(text="Nombre de usuario", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.7}))
+        # self.add_widget(Label(text="Nombre de usuario", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.7}))
+        self.nombre = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.8}, multiline=False, write_tab= False, hint_text="Nombre")
+        self.add_widget(self.nombre)
 
-        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.5, 'y':.7}, multiline=False, write_tab= False)
+        self.apellido = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.7}, multiline=False, write_tab= False, hint_text="Apellido")
+        self.add_widget(self.apellido)
+
+        self.email = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.6}, multiline=False, write_tab= False, hint_text="Correo")
+        self.add_widget(self.email)
+
+        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.5}, multiline=False, write_tab= False, hint_text="Nombre de usuario")
         self.add_widget(self.user)
 
-        self.add_widget(Label(text="Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.5}))
-        self.password = TextInput(password=True, size_hint=(.4, .05),  pos_hint={'x':.5, 'y':.5}, multiline=False, write_tab= False)
+        
+        # self.add_widget(Label(text="Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.5}))
+        self.password = TextInput(password=True, size_hint=(.35, .05),  pos_hint={'x':.3, 'y':.4}, multiline=False, write_tab= False, hint_text="Contraseña")
         self.add_widget(self.password)
 
-        self.add_widget(Label(text="Repetir Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.4}))
-        self.password2 = TextInput(password=True, size_hint=(.4, .05),  pos_hint={'x':.5, 'y':.4}, multiline=False, on_text_validate=self.btn_registrarse, write_tab= False)
+        self.selector_pass1 = BTN_Ojito( size_hint=(.05, .05), pos_hint={'x':.65, 'y':.4}, on_press=self.ver_passwords)
+        self.add_widget(self.selector_pass1)
+
+        # self.add_widget(Label(text="Repetir Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.4}))
+        self.password2 = TextInput(password=True, size_hint=(.35, .05),  pos_hint={'x':.3, 'y':.3}, multiline=False, 
+                                    on_text_validate=self.btn_registrarse, write_tab= False, hint_text="Repetir Contraseña")
         self.add_widget(self.password2)
 
-        self.submit = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.2},on_press=self.btn_registrarse)
+        self.selector_pass2 = BTN_Ojito(size_hint=(.05, .05), pos_hint={'x':.65, 'y':.3}, on_press=self.ver_passwords)
+        self.add_widget(self.selector_pass2)
+
+        self.submit = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.15},on_press=self.btn_registrarse)
         self.add_widget(self.submit)
 
-        self.btn_return = Button(size_hint = (0.1, 0.1) ,pos_hint={'x':.01, 'y':.9},background_normal = './imagenes/arrow.png', on_press=self.return_callback)
+        self.btn_return = Button(size_hint=(0.1,0.1), pos_hint={'x':.01, 'y':.9},background_normal = './imagenes/arrow.png', on_press=self.return_callback)
         self.add_widget(self.btn_return)
+
+        # self.btn_test = button_rtnr()
+        # self.add_widget(self.btn_test)
 
         self.user.focus_next = self.password
         self.password.focus_next = self.password2
@@ -131,8 +148,33 @@ class RegisterWindow(FloatLayout, FocusBehavior):
     # Metodo que se devuelve a la pagina de menu inicial
     def return_callback(self,obj=None):
         self.clear_widgets()
+        # Limpia el fundo
+        with self.canvas:
+            Color(1,1,1)
+            Rectangle(size=self.size, pos=self.pos)
+
         self.init_page.build(obj)
-        
+    
+    def ver_passwords(self, obj):
+        if (obj == self.selector_pass1):
+            if (self.password.password == True):
+                self.password.password=False
+                self.selector_pass1.source='./imagenes/ojito.png'
+            else:
+                self.password.password = True
+                self.selector_pass1.source='./imagenes/no_ojito.png'
+                ## Cambiar el ojito
+
+
+        if (obj == self.selector_pass2):
+            if (self.password2.password == True):
+                self.password2.password=False
+                self.selector_pass2.source='./imagenes/ojito.png'
+            else:
+                self.password2.password = True
+                self.selector_pass2.source='./imagenes/no_ojito.png'
+
+
     # Metodo que realiza la operacion del registro de usuario y contraseña en la base de datos
     def btn_registrarse(self,obj):
         if (self.user.text == ""):
@@ -144,7 +186,8 @@ class RegisterWindow(FloatLayout, FocusBehavior):
                 if (re.findall("^.*(?=.{8,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[.,@#$%^&+=]).*$", self.password.text)):
                     
                     
-                    if(re.findall("^(?![-._])(?!.*[_.-]{2})[\w.-]{5,30}(?<![-._])$", self.user.text) and self.contrasenas_manager.save_new(self.user.text, self.password.text)):
+                    if(re.findall("^(?![-._])(?!.*[_.-]{2})[\w.-]{5,30}(?<![-._])$", self.user.text) and self.contrasenas_manager.save_new(self.user.text, self.password.text, self.nombre.text, self.apellido.text, self.email.text)):
+                    # if(re.findall("^(?![-._])(?!.*[_.-]{2})[\w.-]{5,30}(?<![-._])$", self.user.text) and self.contrasenas_manager.save_new(self.user.text, self.password.text)):
                         self.return_callback()
 
                     else:
@@ -213,3 +256,14 @@ class RegisterWindow(FloatLayout, FocusBehavior):
 
         pop.open()
 
+
+
+'''
+=======================
+Widgets complementarios
+=======================
+'''
+
+class BTN_Ojito(ToggleButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(BTN_Ojito, self).__init__(**kwargs)
