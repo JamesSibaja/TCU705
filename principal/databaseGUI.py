@@ -32,7 +32,7 @@ class DatabaseGUI(BoxLayout):
         self.numPag = 0
         self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
         self.exit = Exit(on_press=self.salir)
-        self.search = Search(on_press=self.buscar)
+        self.search = Search(on_press=self.buscarpop)
         #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
@@ -282,8 +282,8 @@ class DatabaseGUI(BoxLayout):
                         self.contenedor.stack.add_widget(Separador())
                         self.contenedor.stack.add_widget(Title2('')) 
                     else:
-                        self.cuadroTexto = BoxLayout(size_hint= (1, None), height= 500)
-                        self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='middle',text_size=self.size)) 
+                        self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
+                        self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
                         self.contenedor.stack.add_widget(self.cuadroTexto) 
 
         self.contenedor.add_widget(self.contenedor.stack)
@@ -376,7 +376,7 @@ class DatabaseGUI(BoxLayout):
         self.lista.reset()    
         self.lista.calc(self.datoCalc,self.filtroCalc)
         self.pagebarBuilder(0,False)  
-        
+        s
         self.filaTitulo.clear_widgets()
         self.filaTitulo.add_widget(TitleField(self.datoCalc))
         self.filaTitulo.add_widget(TitleField('Cantidad'))
@@ -475,7 +475,7 @@ class DatabaseGUI(BoxLayout):
                         self.lista.totalDatos=y
                         self.lista.totalDatos2=y
         # self.base.execute(filtro)
-        # print(self.base.fetchall())
+        # print(self.base.fetchall()) buscar
         # self.lista.totalDatos = self.base.fetchall()[0][0]
         # self.lista.totalDatos2 = self.base.fetchall()[0][0]
         self.pagebarBuilder(0,True)
@@ -683,7 +683,7 @@ class DatabaseGUI(BoxLayout):
                 self.camposOpcion.append(False)
                 self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+strName+"` TEXT")
 
-    def buscar(self,obj):
+    def buscarpop(self,obj):
 
         self.busqueda_gen = TextInput(hint_text='Ingrese termino de busqueda',size_hint_y=None,height=45)
         botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
@@ -692,8 +692,9 @@ class DatabaseGUI(BoxLayout):
                 title_align = 'center',
                 title_size = '20',
                 auto_dismiss=False,
-                size_hint=(None, None), size=(350, 200))
+                size_hint=(None, None), size=(350, 185))
         self.pop.content.add_widget(self.busqueda_gen)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=15))
         botonesPop.add_widget(Button(text='Cancelar', font_size= 20,on_press=self.cancelPop))
         botonesPop.add_widget(Button(text='Buscar', background_color=(0.6,0.6,0.8),font_size= 20,on_press=self.buscar_gen))
         self.pop.content.add_widget(botonesPop)

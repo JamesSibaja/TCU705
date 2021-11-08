@@ -40,21 +40,21 @@ class DatabaseMenu(BoxLayout):
                             FOREIGN KEY (DatabaseID) REFERENCES database(ID)
                         ) ''')
         
-        self.base.execute('''INSERT INTO users (UserName)
-                             VALUES ('Luis') ''')
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('Luis') ''')
 
-        self.base.execute('''INSERT INTO users (UserName)
-                             VALUES ('James') ''')
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('James') ''')
 
-        self.base.execute('''INSERT INTO users (UserName)
-                             VALUES ('Erick') ''')
+        # self.base.execute('''INSERT INTO users (UserName)
+        #                      VALUES ('Erick') ''')
 
         self.conexion.commit()
         self.df = ['Proyecto'] #Mejorar ya que esta linea prodia no ser necesaria
         self.build()
         
 
-    #Constructor de la ventana principal
+    #Constructor de la ventana principal bus
     def build(self):
         self.base.close()
         self.conexion.close()
@@ -72,11 +72,12 @@ class DatabaseMenu(BoxLayout):
         self.tablas = False
         self.select = False
 
-        self.search = Search(on_press=self.buscar)
+        self.search = Search(on_press=self.buscarpop)
         self.infoTextBox =[]
         self.success = False
         self.editar = False
         self.selectEdit = False
+        self.selectDatabase = False
         self.datoCalc = ""
         self.menuTitle =0
         self.toolbar = Toolbar()
@@ -122,9 +123,9 @@ class DatabaseMenu(BoxLayout):
         #Se crea la barra de Menú y barra de herramientas
         self.barraMenu = MenuBar()
         self.submitOptions = []
+        self.submitOptions.append(ToolbarText(texto = self.nameTitle,on_press=self.perfil))
         self.submitOptions.append(ToolbarText(texto = 'Seleccionar',on_press=self.openBase))
-        self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))
-        self.submitOptions.append(ToolbarText(texto = 'Editar',on_press=self.perfil))#
+        self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))#
         # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
@@ -156,29 +157,33 @@ class DatabaseMenu(BoxLayout):
     #Constructor de la barra de herramientas
     def menubarBuilder(self):
         self.barraMenu.clear_widgets()
-        self.MenuMain.clear_widgets()
+        #self.MenuMain.clear_widgets()
         # self.MenuMain.add_widget(ToolbarShow(on_press=self.toolbarHide))
         # self.MenuMain.add_widget(ToolbarTitleText(texto= self.nameTitle))
         contOpt = 0
         for option in self.submitOptions:
             if(self.menuTitle==contOpt):
                 option.main = True
+            else:
+                option.main = False
             contOpt = contOpt + 1
 
         #self.barraMenu.add_widget(self.MenuMain)
         self.barraMenu.add_widget(ToolbarShow(on_press=self.toolbarHide))
+
+        
         self.barraMenu.add_widget(SeparadorH())     
         contOpt = 0
         for option in self.submitOptions:
             self.barraMenu.add_widget(option)
-            if not (self.menuTitle==contOpt):
-                option.main = False
-            contOpt = contOpt + 1    
+            # if not (self.menuTitle==contOpt):
+            #     option.main = False
+            # contOpt = contOpt + 1    
          
         self.barraMenu.add_widget(SeparadorH())  
-        self.barraMenu.add_widget(ToolbarTitleText(texto= self.nameTitle)) 
         self.barraMenu.add_widget(self.search)
         self.barraMenu.add_widget(self.exit)  
+       # self.barraMenu.add_widget(ToolbarTitleText(texto= self.nameTitle)) 
  
     #Constructor de la barra de herramientas
     def toolbarBuilder(self):   
@@ -187,41 +192,32 @@ class DatabaseMenu(BoxLayout):
         self.subBoton.clear_widgets()
         self.contenedor.build()
         self.contenedorLista.clear_widgets()
-        if self.editarPerfil:
-            #Si se encuentra en el menú de columnas o se abre por primera vez el
-            #menú de estadistica o el de filtro
-            pass
-                
-        else:            
-            #Si se encuentra en el menú de filtros
-            if self.nuevaBase:
-                self.contenedorLista.add_widget(NewDocument(self.aplicacion))
-                self.contenedor.stack.add_widget(Title3("Agregar colaborador"))
-                self.newUser = TextInput(text='',size_hint_y=None,height=45)
-                self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
-                self.contenedor.stack.add_widget(self.newUser)
-                self.contenedor.stack.add_widget(Separador())
-                self.contenedor.stack.add_widget(self.permisoEditar) 
-                self.contenedor.stack.add_widget(Separador())
-                self.contenedor.stack.add_widget(ButtonAccept(texto = 'Verificar',on_press=self.addUser))
-                self.contenedor.stack.add_widget(Separador2()) 
-                
-                primero = True
-                for user in self.colaboradores: 
-                    if not primero:
-                        self.contenedor.stack.add_widget(Title2(user))
-                    primero = False
+               
+        #Si se encuentra en el menú de filtros
+        if self.nuevaBase:
+            self.contenedorLista.add_widget(NewDocument(self.aplicacion))
+            self.contenedor.stack.add_widget(Title3("Agregar colaborador"))
+            self.newUser = TextInput(text='',size_hint_y=None,height=45)
+            self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
+            self.contenedor.stack.add_widget(self.newUser)
+            self.contenedor.stack.add_widget(Separador())
+            self.contenedor.stack.add_widget(self.permisoEditar) 
+            self.contenedor.stack.add_widget(Separador())
+            self.contenedor.stack.add_widget(ButtonAccept(texto = 'Verificar',on_press=self.addUser))
+            self.contenedor.stack.add_widget(Separador2()) 
+            
+            primero = True
+            for user in self.colaboradores: 
+                if not primero:
+                    self.contenedor.stack.add_widget(Title2(user))
+                primero = False
 
-            else:
-                ##Si se encuentra en el menú de estadistica#Si se encuentra en el menú de ver o el de editar
-                # self.contenedor.stack.add_widget(Title3("Ingrese termino de busqueda"))
-                # self.busqueda_gen = TextInput(text='',size_hint_y=None,height=45)
-                # self.contenedor.stack.add_widget(self.busqueda_gen)
-                # self.contenedor.stack.add_widget(Separador())
-                # self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
-                # self.contenedor.stack.add_widget(Separador2())                            
-                          
+        else:
+            print('priemro')
+            print(self.selectDatabase)
+            if self.selectDatabase:
                 self.createLista()
+                print('seefu do')
                 cont = -1
                 self.infoTextBo=[]
                 if self.select:
@@ -251,9 +247,12 @@ class DatabaseMenu(BoxLayout):
                     self.contenedor.stack.add_widget(Title2('')) 
                     self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
                 else:
-                    self.cuadroTexto = BoxLayout(size_hint= (1, None), height= 500)
-                    self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='middle',text_size=self.size)) 
+                    self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
+                    self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
                     self.contenedor.stack.add_widget(self.cuadroTexto) 
+            else:
+                print('tercero')
+                pass
         self.contenedor.add_widget(self.contenedor.stack)
 
     def addUser(self,obj):
@@ -322,19 +321,20 @@ class DatabaseMenu(BoxLayout):
         self.openBase('')
 
     def openBase(self,obj): #Función de la opción del menu ver
-        self.menuTitle=0
+        self.menuTitle=1
         self.menubarBuilder()
-        self.editarPerfil = False
+        self.selectDatabase = True
         self.nuevaBase = False
-        self.build()
+        #self.build()
         self.toolbar.show = False
         self.toolbarHide(obj)
+        self.contenedor.stack.scroll_y=1
         self.toolbarBuilder()
 
     def newBase(self,obj): #Función de la opción del menu editar
-        self.menuTitle=1
+        self.menuTitle=2
         self.menubarBuilder()
-        self.editarPerfil = False
+        self.selectDatabase = False
         self.nuevaBase = True
         self.colaboradores =[self.nameTitle]
         self.colaboradoresID =[self.userID]
@@ -342,6 +342,7 @@ class DatabaseMenu(BoxLayout):
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbar.show = False
         self.toolbarHide(obj)
+        self.contenedor.stack.scroll_y=1
         self.toolbarBuilder() 
 
     def siguientePagina(self,obj): #Siguiente página para caso general
@@ -421,25 +422,26 @@ class DatabaseMenu(BoxLayout):
         self.pop.dismiss(obj)
                 
     def perfil(self,obj):
-        self.menuTitle=2
+        self.menuTitle=0
         self.menubarBuilder()        
-        self.editarPerfil = True
+        self.selectDatabase = False
         self.nuevaBase = False
         self.toolbar.show = False 
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
 
-    def buscar(self,obj):
+    def buscarpop(self,obj):
 
-        self.busqueda_gen = TextInput(hint_text='Ingrese termino de busqueda',size_hint_y=None,height=45)
+        self.busqueda_gen = TextInput(hint_text='Ingrese termino de busqueda',size_hint_y=None,height=60)
         botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
         self.pop = Popup(title='Busqueda rápida',
                 content=BoxLayout(padding=(10,0),orientation='vertical'),
                 title_align = 'center',
                 title_size = '20',
                 auto_dismiss=False,
-                size_hint=(None, None), size=(350, 200))
+                size_hint=(None, None), size=(350, 185))
         self.pop.content.add_widget(self.busqueda_gen)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=15))
         botonesPop.add_widget(Button(text='Cancelar', font_size= 20,on_press=self.cancelPop))
         botonesPop.add_widget(Button(text='Buscar', background_color=(0.6,0.6,0.8),font_size= 20,on_press=self.buscar_gen))
         self.pop.content.add_widget(botonesPop)
@@ -683,6 +685,7 @@ class ToolbarSub(ScrollView):
     def build(self):
         self.stack=ToolbarContaner()
         self.stack.bind(minimum_height=self.stack.setter('height'))
+        #self.add_widget(self.stack)
 
 class ToolbarContaner(StackLayout):
     pass
