@@ -115,7 +115,10 @@ class DataViewer(ScrollView):
 
         for row in self.filas:
             self.contenedor.add_widget(row)
-            
+        #print(str(self.filas)+' '+str(bool(self.filas)))
+        if not bool(self.filas):
+            self.contenedor.add_widget(TitleTable('Sin elementos que mostrar'))
+
         self.add_widget(self.contenedor)
 
     #Función para ignorar tildes
@@ -307,3 +310,9 @@ class campoBD2(BoxLayout):
     def verPDF(self):
         path = self.g
         webbrowser.open_new(path)
+
+class TitleTable(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto,**kwargs):
+        super(TitleTable, self).__init__(**kwargs)
+        self.g = texto

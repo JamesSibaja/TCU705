@@ -22,7 +22,7 @@ class DatabaseMenu(BoxLayout):
         #get the count of tables with the name 
         self.base.execute('''CREATE TABLE IF NOT EXISTS database(
                             ID INTEGER primary key autoincrement,
-                            Proyecto varchar(255) NOT NULL,
+                            Nombre varchar(255) NOT NULL,
                             Columns varchar(255) NOT NULL
                         ) ''')
 
@@ -50,7 +50,7 @@ class DatabaseMenu(BoxLayout):
         #                      VALUES ('Erick') ''')
 
         self.conexion.commit()
-        self.df = ['Proyecto'] #Mejorar ya que esta linea prodia no ser necesaria
+        self.df = ['Nombre'] #Mejorar ya que esta linea prodia no ser necesaria
         self.build()
         
 
@@ -60,7 +60,7 @@ class DatabaseMenu(BoxLayout):
         self.conexion.close()
         self.conexion = sqlite3.connect(self.baseName)
         self.base = self.conexion.cursor()
-        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Proyecto, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
+        self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Nombre, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
         self.conexion.commit()
         self.clear_widgets()
         self.numPag = 0
@@ -73,6 +73,7 @@ class DatabaseMenu(BoxLayout):
         self.select = False
 
         self.search = Search(on_press=self.buscarpop)
+        self.res = Res(on_press=self.reset)
         self.infoTextBox =[]
         self.success = False
         self.editar = False
@@ -181,6 +182,7 @@ class DatabaseMenu(BoxLayout):
             # contOpt = contOpt + 1    
          
         self.barraMenu.add_widget(SeparadorH())  
+        self.barraMenu.add_widget(self.res)
         self.barraMenu.add_widget(self.search)
         self.barraMenu.add_widget(self.exit)  
        # self.barraMenu.add_widget(ToolbarTitleText(texto= self.nameTitle)) 
@@ -225,7 +227,7 @@ class DatabaseMenu(BoxLayout):
                             
                             if cont != -1:
                                 self.contenedor.stack.add_widget(Title(texto=self.nombres[cont] + ":",bold = True))
-                                if self.nombres[cont] == 'Proyecto':
+                                if self.nombres[cont] == 'Nombre':
                                     self.selectBase = str(text)
                                 if self.nombres[cont] == 'Permiso':
                                     if text == 'Editar':
@@ -316,14 +318,13 @@ class DatabaseMenu(BoxLayout):
             self.base.execute("INSERT INTO usersxdatabase (UserID,DatabaseID,Permiso) VALUES ("+str(user)+","+str(baseID)+",'Ver') ")
             self.conexion.commit()
 
-        self.openBase('')
+        self.build()
 
     def openBase(self,obj): #Función de la opción del menu ver
         self.menuTitle=0
         self.menubarBuilder()
         self.selectDatabase = True
         self.nuevaBase = False
-        #self.build()
         self.toolbar.show = False
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
@@ -465,6 +466,21 @@ class DatabaseMenu(BoxLayout):
         self.pop.dismiss(obj)
         self.upApp.build(0)
 
+    def error(self):
+        botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
+        self.pop = Popup(title='No se pudo crear la base, intentelo de nuevo usando un archivo con extensión xlsx',
+                content=BoxLayout(padding=(10,0),orientation='vertical'),
+                title_align = 'center',
+                title_size = '20',
+                auto_dismiss=False,
+                size_hint=(None, None), size=(350, 160))
+        botonesPop.add_widget(Button(text='Aceptar', font_size= 20,on_press=self.cancelPop))
+        self.pop.content.add_widget(botonesPop)
+        self.pop.open()
+
+    def reset(self,obj):
+        self.build()
+
 def on_enter(instance, value):
     print('User pressed enter in', instance)
 
@@ -587,6 +603,11 @@ class NewDocument(FloatLayout):
         
 class OcultarBarra(FloatLayout):
     pass
+
+class Res(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Res, self).__init__(**kwargs)
+        pass
 
 class Search(ButtonBehavior,Image,BoxLayout):
     def __init__(self,**kwargs):

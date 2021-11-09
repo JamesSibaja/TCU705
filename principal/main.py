@@ -60,29 +60,32 @@ class DatabaseGUIApp(App): #Aplicación principal
             self.pantalla.baseWidget.lista.reset()
             self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
         if self.subiendoBase:
-            table = self.nombreArchivo
-            self.subiendoBase = False
-            xls = pd.ExcelFile(file_path.decode("utf-8")) #Se carga el documento de excel
-            miConexion = sqlite3.connect('base')
-            df = pd.read_excel(file_path.decode("utf-8")) #Se lee el documento de excel  
-            df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
-            c = miConexion.cursor()
-            #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
-            c.execute("INSERT INTO database (Proyecto,columns) VALUES ('"+self.nombreArchivo+"','111') ")
-            miConexion.commit()
-            for x in c.execute("SELECT ID FROM database WHERE `Proyecto` = '"+self.nombreArchivo+"'"):
-                for y in x:
-                    self.pantalla.menuWidget.baseLink(y)
-            c.close
-            miConexion.close
+            try:
+                table = self.nombreArchivo
+                self.subiendoBase = False
+                xls = pd.ExcelFile(file_path.decode("utf-8")) #Se carga el documento de excel
+                miConexion = sqlite3.connect('base')
+                df = pd.read_excel(file_path.decode("utf-8")) #Se lee el documento de excel  
+                df.to_sql(name = table, con = miConexion, if_exists = 'replace', index = True) #Se pasa el documento de excel a sql
+                c = miConexion.cursor()
+                #c.execute('ALTER TABLE '+table+' ADD PDF TEXT')
+                c.execute("INSERT INTO database (Nombre,columns) VALUES ('"+self.nombreArchivo+"','111') ")
+                miConexion.commit()
+                for x in c.execute("SELECT ID FROM database WHERE `Nombre` = '"+self.nombreArchivo+"'"):
+                    for y in x:
+                        self.pantalla.menuWidget.baseLink(y)
+                c.close
+                miConexion.close
+            except:
+                self.pantalla.error()
             #self.pantalla.window.lista.reset()
 
-    def buildList(self):
-        self.pantalla.baseWidget.lista.reset()
-        '''
-        Arreglar est linea
-        '''
-        self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
+    # def buildList(self):
+    #     self.pantalla.baseWidget.build()
+    #     '''
+    #     Arreglar est linea
+    #     '''
+    #     self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
     
 
     def on_pause(self):
@@ -145,6 +148,9 @@ class MainWindow(BoxLayout):
             self.sm.current = 'base'
         else:
             self.sm.current = 'menu'
+
+    def error(self):
+        self.menuWidget.error()
         
 
 '''
