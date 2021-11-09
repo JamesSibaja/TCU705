@@ -26,17 +26,17 @@ class DatabaseMenu(BoxLayout):
                             Columns varchar(255) NOT NULL
                         ) ''')
 
-        self.base.execute('''CREATE TABLE IF NOT EXISTS users(
-                            ID INTEGER primary key autoincrement,
-                            UserName varchar(255) NOT NULL
-                        ) ''')
+        # self.base.execute('''CREATE TABLE IF NOT EXISTS users(
+        #                     ID INTEGER primary key autoincrement,
+        #                     UserName varchar(255) NOT NULL
+        #                 ) ''') passwords
 
         self.base.execute('''CREATE TABLE IF NOT EXISTS usersxdatabase(
                             ID INTEGER primary key autoincrement,
                             UserID INTEGER NOT NULL,
                             DatabaseID INTEGER NOT NULL,
                             Permiso varchar(255) NOT NULL,
-                            FOREIGN KEY (UserID) REFERENCES users(ID),
+                            FOREIGN KEY (UserID) REFERENCES passwords(ID),
                             FOREIGN KEY (DatabaseID) REFERENCES database(ID)
                         ) ''')
         
@@ -77,12 +77,12 @@ class DatabaseMenu(BoxLayout):
         self.success = False
         self.editar = False
         self.selectEdit = False
-        self.selectDatabase = False
+        self.selectDatabase = True
         self.datoCalc = ""
         self.menuTitle =0
         self.toolbar = Toolbar()
         self.contenedor = ToolbarSub() 
-        self.base.execute("select UserName from users where ID = "+ str(self.userID))
+        self.base.execute("select username from passwords where ID = "+ str(self.userID))
         self.nameTitle = self.base.fetchall()[0][0]
 
         self.colaboradores =[self.nameTitle]
@@ -123,9 +123,9 @@ class DatabaseMenu(BoxLayout):
         #Se crea la barra de Menú y barra de herramientas
         self.barraMenu = MenuBar()
         self.submitOptions = []
+        self.submitOptions.append(ToolbarText(texto = 'Bases de Datos',on_press=self.openBase))
+        self.submitOptions.append(ToolbarText(texto = 'Nueva Base',on_press=self.newBase))
         self.submitOptions.append(ToolbarText(texto = self.nameTitle,on_press=self.perfil))
-        self.submitOptions.append(ToolbarText(texto = 'Seleccionar',on_press=self.openBase))
-        self.submitOptions.append(ToolbarText(texto = 'Nuevo',on_press=self.newBase))#
         # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
@@ -213,11 +213,9 @@ class DatabaseMenu(BoxLayout):
                 primero = False
 
         else:
-            print('priemro')
-            print(self.selectDatabase)
+            
             if self.selectDatabase:
                 self.createLista()
-                print('seefu do')
                 cont = -1
                 self.infoTextBo=[]
                 if self.select:
@@ -247,11 +245,11 @@ class DatabaseMenu(BoxLayout):
                     self.contenedor.stack.add_widget(Title2('')) 
                     self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
                 else:
-                    self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
-                    self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
-                    self.contenedor.stack.add_widget(self.cuadroTexto) 
+                    #self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
+                    #self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista', halign='center', valign='top', color=  (0.7,0.45,0,1),text_size=self.cuadroTexto.size)) 
+                    self.contenedor.stack.add_widget(Title('Ningún elemento seleccionado, haga click sobre algún elemento de la lista',size_hint_y= None,height=300)) 
+                    #self.contenedor.stack.add_widget(self.cuadroTexto) 
             else:
-                print('tercero')
                 pass
         self.contenedor.add_widget(self.contenedor.stack)
 
@@ -259,7 +257,7 @@ class DatabaseMenu(BoxLayout):
         self.success = False
         incluido = False
         ID = 0
-        for r in self.base.execute('''SELECT ID, UserName FROM users'''):
+        for r in self.base.execute('''SELECT ID, UserName FROM passwords'''):
             if r[1] == self.newUser.text:
                 self.success = True  
                 ID = r[0] 
@@ -321,7 +319,7 @@ class DatabaseMenu(BoxLayout):
         self.openBase('')
 
     def openBase(self,obj): #Función de la opción del menu ver
-        self.menuTitle=1
+        self.menuTitle=0
         self.menubarBuilder()
         self.selectDatabase = True
         self.nuevaBase = False
@@ -332,7 +330,7 @@ class DatabaseMenu(BoxLayout):
         self.toolbarBuilder()
 
     def newBase(self,obj): #Función de la opción del menu editar
-        self.menuTitle=2
+        self.menuTitle=1
         self.menubarBuilder()
         self.selectDatabase = False
         self.nuevaBase = True
@@ -422,7 +420,7 @@ class DatabaseMenu(BoxLayout):
         self.pop.dismiss(obj)
                 
     def perfil(self,obj):
-        self.menuTitle=0
+        self.menuTitle=2
         self.menubarBuilder()        
         self.selectDatabase = False
         self.nuevaBase = False
@@ -623,16 +621,16 @@ class TitleFilter(BoxLayout):
 class Title(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 
 class Title3(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title3, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title3, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 

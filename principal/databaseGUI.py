@@ -96,7 +96,7 @@ class DatabaseGUI(BoxLayout):
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
-        self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
+        #self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
         self.menubarBuilder()
         self.toolbar.add_widget(self.contenedor)
         self.subBoton = BoxLayout(size_hint=(1,None),height=50,padding= (15,5,15,10))
@@ -282,9 +282,11 @@ class DatabaseGUI(BoxLayout):
                         self.contenedor.stack.add_widget(Separador())
                         self.contenedor.stack.add_widget(Title2('')) 
                     else:
-                        self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
-                        self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
-                        self.contenedor.stack.add_widget(self.cuadroTexto) 
+                        # self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
+                        # self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
+                        # self.contenedor.stack.add_widget(self.cuadroTexto) 
+                        self.contenedor.stack.add_widget(Title('Ningún elemento seleccionado, haga click sobre algún elemento de la lista',size_hint_y= None,height=300)) 
+                    
 
         self.contenedor.add_widget(self.contenedor.stack)
 
@@ -376,7 +378,7 @@ class DatabaseGUI(BoxLayout):
         self.lista.reset()    
         self.lista.calc(self.datoCalc,self.filtroCalc)
         self.pagebarBuilder(0,False)  
-        s
+        
         self.filaTitulo.clear_widgets()
         self.filaTitulo.add_widget(TitleField(self.datoCalc))
         self.filaTitulo.add_widget(TitleField('Cantidad'))
@@ -841,16 +843,16 @@ class TitleFilter(BoxLayout):
 class Title(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 
 class Title3(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title3, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title3, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 

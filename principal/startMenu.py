@@ -65,7 +65,8 @@ class MenuInicial(FloatLayout):
 
     def loggin(self,obj):
         if self.contrasenas_manager.comparar(self.user.text, self.password.text):
-                self.upApp.build()
+            #print(self.contrasenas_manager.get_data(self.user.text)[0])
+            self.upApp.build(userID=self.contrasenas_manager.get_data(self.user.text)[0])
         else:
                 self.Fallo_UC()
 
