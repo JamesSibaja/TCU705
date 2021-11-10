@@ -1,5 +1,6 @@
 from lib import *
 from dataViewer import DataViewer
+from contrasenas import passw_manager
 SubiendoArchivo = False
 
 '''
@@ -126,7 +127,7 @@ class DatabaseMenu(BoxLayout):
         self.submitOptions = []
         self.submitOptions.append(ToolbarText(texto = 'Bases de Datos',on_press=self.openBase))
         self.submitOptions.append(ToolbarText(texto = 'Nueva Base',on_press=self.newBase))
-        self.submitOptions.append(ToolbarText(texto = self.nameTitle,on_press=self.perfil))
+        self.submitOptions.append(ToolbarText(texto = 'Perfil',on_press=self.perfil))
         # self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         # self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
         # self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
@@ -141,6 +142,7 @@ class DatabaseMenu(BoxLayout):
         self.pantalla.add_widget(self.contenedorLista)
         self.add_widget(self.barraMenu)
         self.add_widget(self.pantalla)
+        self.add_widget(PiePagina(self.nameTitle))
         self.permisoEditar = ToggleButton(text="Permiso para editar",size_hint_y=None,height=25)
         
         self.toolbarBuilder()
@@ -196,7 +198,8 @@ class DatabaseMenu(BoxLayout):
         self.contenedorLista.clear_widgets()
                
         #Si se encuentra en el menú de filtros
-        if self.nuevaBase:
+        #if self.nuevaBase:
+        if self.menuTitle==1:
             self.contenedorLista.add_widget(NewDocument(self.aplicacion))
             self.contenedor.stack.add_widget(Title3("Agregar colaborador"))
             self.newUser = TextInput(text='',size_hint_y=None,height=45)
@@ -216,7 +219,8 @@ class DatabaseMenu(BoxLayout):
 
         else:
             
-            if self.selectDatabase:
+            #if self.selectDatabase:
+            if self.menuTitle==0:
                 self.createLista()
                 cont = -1
                 self.infoTextBo=[]
@@ -245,14 +249,26 @@ class DatabaseMenu(BoxLayout):
                                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Editar',title=self.nombres[cont],input=len(self.infoTextBox)-1,on_press=self.editarCampo))
                             cont = cont + 1
                     self.contenedor.stack.add_widget(Title2('')) 
-                    self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
+                    if self.toolbar.show:
+                        self.subBoton.add_widget(ButtonAccept(texto = 'Abrir',on_press=self.open))
                 else:
                     #self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
                     #self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista', halign='center', valign='top', color=  (0.7,0.45,0,1),text_size=self.cuadroTexto.size)) 
                     self.contenedor.stack.add_widget(Title('Ningún elemento seleccionado, haga click sobre algún elemento de la lista',size_hint_y= None,height=300)) 
                     #self.contenedor.stack.add_widget(self.cuadroTexto) 
             else:
-                pass
+                if self.menuTitle==2:
+                    self.contenedorLista.add_widget(NewDocument2(self.nameTitle))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Ver perfil'))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Editar Perfil'))
+                    self.contenedor.stack.add_widget(Separador())
+                    self.contenedor.stack.add_widget(Title("Ajustes"))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Idioma'))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Tamaño de Letra'))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Tamaño de Página'))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Tema'))
+                    self.contenedor.stack.add_widget(ButtonMain(texto = 'Accesibilidad'))
+                
         self.contenedor.add_widget(self.contenedor.stack)
 
     def addUser(self,obj):
@@ -325,10 +341,11 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()
         self.selectDatabase = True
         self.nuevaBase = False
-        self.toolbar.show = False
-        self.toolbarHide(obj)
-        self.contenedor.stack.scroll_y=1
+        # self.toolbar.show = False
+        # self.toolbarHide(obj)
         self.toolbarBuilder()
+        self.contenedor.stack.scroll_y=1
+        
 
     def newBase(self,obj): #Función de la opción del menu editar
         self.menuTitle=1
@@ -339,10 +356,11 @@ class DatabaseMenu(BoxLayout):
         self.colaboradoresID =[self.userID]
         self.lista.reset()
         self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
-        self.toolbar.show = False
-        self.toolbarHide(obj)
-        self.contenedor.stack.scroll_y=1
+        #self.toolbar.show = False
+        #self.toolbarHide(obj)
+
         self.toolbarBuilder() 
+        self.contenedor.stack.scroll_y=1
 
     def siguientePagina(self,obj): #Siguiente página para caso general
         self.lista.reset()
@@ -425,9 +443,11 @@ class DatabaseMenu(BoxLayout):
         self.menubarBuilder()        
         self.selectDatabase = False
         self.nuevaBase = False
-        self.toolbar.show = False 
-        self.toolbarHide(obj)
+        # self.toolbar.show = False 
+        # self.toolbarHide(obj)
+        self.toolbarBuilder()
         self.contenedor.stack.scroll_y=1
+       
 
     def buscarpop(self,obj):
 
@@ -600,9 +620,42 @@ class NewDocument(FloatLayout):
         self.aplicacion.subiendoBase = True
         self.aplicacion.nombreArchivo = self.name.text
         self.add_widget(Label(text='Arrastre un documento',color=(0.75,0.35,0.35),size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475}))
+
+class NewDocument2(FloatLayout):
+    doc = BooleanProperty()
+    def __init__(self,user):
+        super(NewDocument2, self).__init__()
+        self.contrasenas_manager = passw_manager('base')
+        #self.name = TextInput(size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475})
         
+        self.add_widget(Label(text='Usuario:',halign='left',color=(0.2,0.2,0.1),size_hint=(.3, .1), pos_hint={'x':.1, 'y':.8},font_size=17,bold = True))
+        self.add_widget(Label(text=self.contrasenas_manager.get_data(user)[1],halign='left',color=(0.2,0.2,0.1),size_hint=(.6, .1), pos_hint={'x':.3, 'y':.8},font_size=17))
+        self.add_widget(Label(text='Nombre:',halign='left',color=(0.2,0.2,0.1),size_hint=(.3, .1), pos_hint={'x':.1, 'y':.65},font_size=17,bold = True))
+        self.add_widget(Label(text=self.contrasenas_manager.get_data(user)[3],halign='left',color=(0.2,0.2,0.1),size_hint=(.6, .1), pos_hint={'x':.3, 'y':.65},font_size=17))
+        self.add_widget(Label(text='Apellido:',halign='left',color=(0.2,0.2,0.1),size_hint=(.3, .1), pos_hint={'x':.1, 'y':.50},font_size=17,bold = True))
+        self.add_widget(Label(text=self.contrasenas_manager.get_data(user)[4],halign='left',color=(0.2,0.2,0.1),size_hint=(.6, .1), pos_hint={'x':.3, 'y':.50},font_size=17))
+        self.add_widget(Label(text='Correo:',halign='left',color=(0.2,0.2,0.1),size_hint=(.3, .1), pos_hint={'x':.1, 'y':.35},font_size=17,bold = True))
+        self.add_widget(Label(text=self.contrasenas_manager.get_data(user)[5],halign='left',color=(0.2,0.2,0.1),size_hint=(.6, .1), pos_hint={'x':.3, 'y':.35},font_size=17))
+    
+    #     self.add_widget(self.name)
+    #     self.add_widget(Button(text='Aceptar', size_hint=(.6, .05), pos_hint={'x':.2, 'y':.4},on_press=self.insertarBase))
+
+    # def insertarBase(self,obj):
+    #     self.clear_widgets()
+    #     self.doc = True
+    #     self.aplicacion.subiendoBase = True
+    #     self.aplicacion.nombreArchivo = self.name.text
+    #     self.add_widget(Label(text='Arrastre un documento',color=(0.75,0.35,0.35),size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475}))
+        
+
 class OcultarBarra(FloatLayout):
     pass
+
+class PiePagina(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(PiePagina, self).__init__()
+        self.g = texto
 
 class Res(ButtonBehavior,Image,BoxLayout):
     def __init__(self,**kwargs):

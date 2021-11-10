@@ -62,7 +62,7 @@ class DatabaseGUIApp(App): #Aplicación principal
         if self.subiendoBase:
             try:
                 table = self.nombreArchivo
-                self.subiendoBase = False
+                
                 xls = pd.ExcelFile(file_path.decode("utf-8")) #Se carga el documento de excel
                 miConexion = sqlite3.connect('base')
                 df = pd.read_excel(file_path.decode("utf-8")) #Se lee el documento de excel  
@@ -76,6 +76,7 @@ class DatabaseGUIApp(App): #Aplicación principal
                         self.pantalla.menuWidget.baseLink(y)
                 c.close
                 miConexion.close
+                self.subiendoBase = False
             except:
                 self.pantalla.error()
             #self.pantalla.window.lista.reset()

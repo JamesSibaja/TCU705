@@ -77,6 +77,7 @@ class DatabaseGUI(BoxLayout):
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
+        #self.contenedorTrabajo = BoxLayout(orientation= 'vertical')
         self.contenedorLista = BoxLayout(padding = 10,orientation= 'vertical')
         for selectField in self.campos:
             self.filaTitulo.add_widget(TitleField(selectField.rstrip('.d')))
@@ -106,9 +107,14 @@ class DatabaseGUI(BoxLayout):
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
+
+        #self.contenedorTrabajo.add_widget(PiePagina(self.table))
+        #self.contenedorTrabajo.add_widget(self.contenedorLista)
         self.pantalla.add_widget(self.contenedorLista)
         self.add_widget(self.barraMenu)
         self.add_widget(self.pantalla)
+
+        self.add_widget(PiePagina(self.table))
 
         self.toolbarBuilder()
 
@@ -206,7 +212,7 @@ class DatabaseGUI(BoxLayout):
                 self.resBarras()               
                 self.contenedor.stack.clear_widgets()
                 self.filtros = []
-                self.menuFiltro = False
+                #self.menuFiltro = False
                 if self.estadisticas:
                     self.submit = ButtonAccept(texto = 'Usar',on_press=self.usarFiltro)
                 else:
@@ -718,6 +724,7 @@ class DatabaseGUI(BoxLayout):
             else:        
                 self.nombres.append(strName)
                 self.camposOpcion.append(False)
+                self.filtrosOpcion.append(False)
                 self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+strName+"` TEXT")
 
     def buscarpop(self,obj):
@@ -909,6 +916,12 @@ class TitlePag(BoxLayout):
     g = StringProperty()
     def __init__(self,texto):
         super(TitlePag, self).__init__()
+        self.g = texto
+
+class PiePagina(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(PiePagina, self).__init__()
         self.g = texto
 
 class ToolbarTitle(BoxLayout):
