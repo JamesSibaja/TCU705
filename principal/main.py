@@ -35,7 +35,7 @@ Clase que define la aplicación principal
 class DatabaseGUIApp(App): #Aplicación principal    
     def __init__(self):
         super(DatabaseGUIApp, self).__init__()
-        title = 'Plataforma'
+        self.title = 'Plataforma Bolsa de Empleo'
 
     def build(self):
         Window.bind(on_dropfile=self._on_file_drop)
