@@ -60,10 +60,10 @@ class DatabaseMenu(BoxLayout):
 
     #Constructor de la ventana principal bus close
     def build(self):
-        # self.base.close()
-        # self.conexion.close()
-        # self.conexion = sqlite3.connect(self.baseName)
-        # self.base = self.conexion.cursor()
+        self.base.close()
+        self.conexion.close()
+        self.conexion = sqlite3.connect(self.baseName)
+        self.base = self.conexion.cursor()
         self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Nombre, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
         self.conexion.commit()
         self.clear_widgets()
@@ -629,7 +629,7 @@ class NewDocument2(FloatLayout):
     def __init__(self,user):
         super(NewDocument2, self).__init__()
         self.contrasenas_manager = passw_manager('base')
-        #self.name = TextInput(size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475})
+        #self.name = TextInput(size_hint=(.6, .05), pos_hint={'x':.2, 'y':.475}) baselink
         
         self.add_widget(Label(text='Usuario:',halign='left',color=(0.2,0.2,0.1),size_hint=(.3, .1), pos_hint={'x':.1, 'y':.8},font_size=17,bold = True))
         self.add_widget(Label(text=self.contrasenas_manager.get_data(user)[1],halign='left',color=(0.2,0.2,0.1),size_hint=(.6, .1), pos_hint={'x':.3, 'y':.8},font_size=17))
