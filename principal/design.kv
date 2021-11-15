@@ -207,12 +207,12 @@
 <DataViewerContainer>:
     size_hint_y: None
     minimum_height: self.height
-    canvas:
-        Color:
-            rgb: (0.2, 0.35, 0.43)
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    # canvas:
+    #     Color:
+    #         rgb: (0.2, 0.35, 0.43)
+    #     Rectangle:
+    #         size: self.size
+    #         pos: self.pos
 
 <Divisor>:
     rgb:(0,0,0)
@@ -371,10 +371,18 @@
 <MenuInicial>:
     canvas:
         Color:
-            rgb: (0.15,0.4, 0.6)
+            rgb: (1,1, 1)
         Rectangle:
             size: self.size
             pos: self.pos
+
+        Color:
+            rgb: (151/255, 195/255, 252/255)
+        RoundedRectangle:
+            size: (self.size[0]*0.6, self.size[1]*0.55)
+            pos: (self.width*0.2, self.height*0.05)
+            radius: [50]
+
 
 <NewDocument>:
     orientation: 'vertical'
@@ -385,6 +393,35 @@
         Rectangle:
             size: self.size
             pos: self.pos
+
+<NewDocument2>:
+    orientation: 'vertical'
+    size_hint: (1,1)
+    canvas:
+        Color:
+            rgb: (0.9,0.9,0.9)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<PiePagina>:
+    size_hint: (1,None)
+    height: 18
+    canvas.before:
+        Color:
+            rgb: 0.3,0.5,0.5
+        Rectangle:
+            size:self.size
+            pos:self.pos
+
+    Label:
+        text: root.g        
+        text_size:self.size
+        font_size:12
+        padding: (7,7)
+        halign:'center'
+        valign:'middle'
+        color: 1,1,1,1
 
 <RegisterWindow>:
     canvas:
@@ -400,6 +437,12 @@
             size: (self.size[0]*0.6, self.size[1]*0.82)
             pos: (self.width*0.2, self.height*0.1)
             radius: [50]
+
+<Res>:
+    size_hint_y:1
+    size_hint_x:None
+    width:25
+    source:'imagenes/res.png'
 
 <Search>:
     size_hint_y:1
@@ -493,8 +536,6 @@
         text_size:self.size
         color: (0.2,0.2,0.2) 
 
-
-
 <TitleField>:
     orientation: 'vertical'
     padding: (-2,-2,-2,0)
@@ -537,6 +578,21 @@
         valign:'middle'
         color: 1,1,1,1
 
+<TitleTable>:
+    size_hint_x:1
+    size_hint_y: None
+    height: 80 
+
+    Label:
+        text: root.g
+        font_size: 25
+        halign:'center'
+        padding: (15,5)
+        valign:'middle'
+        bold: True
+        text_size:self.size
+        color: (0.8,0.8,0.8) 
+
 <Toolbar>:
     size_hint:(None,1)
     width:  (Window.size[0]*0.2 +6 if Window.size[0]*0.2>150 else 150) if root.show else 0
@@ -558,6 +614,13 @@
     size_hint_y: None
     minimum_height: self.height
     padding: (10,10)
+
+    canvas:
+        Color:
+            rgb: 0.85,0.85,0.85
+        Rectangle:
+            size: self.size
+            pos: self.pos
 
 <ToolbarShow>:
     size_hint_y:1

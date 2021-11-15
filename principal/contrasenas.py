@@ -12,7 +12,7 @@ class passw_manager:
 
         #get the count of tables with the name
         c.execute('''CREATE TABLE IF NOT EXISTS passwords
-             (username varchar(255) NOT NULL, pass BLOB NOT NULL, nombre TEXT NOT NULL, apellido TEXT NOT NULL, correo TEXT NOT NULL)''')
+             (ID INTEGER primary key autoincrement,username varchar(255) NOT NULL, pass BLOB NOT NULL, nombre TEXT NOT NULL, apellido TEXT NOT NULL, correo TEXT NOT NULL)''')
 
 
         self.data.commit()
@@ -30,7 +30,7 @@ class passw_manager:
         rows = c.fetchall()
 
         for r in rows:
-            if r[0] == username and r[1] == sha256(password.encode()).hexdigest():
+            if r[1] == username and r[2] == sha256(password.encode()).hexdigest():
                 self.data.commit()
                 self.data.close()
                 return True
@@ -62,7 +62,7 @@ class passw_manager:
             return False
         else:
 
-            c.execute('''INSERT INTO passwords
+            c.execute('''INSERT INTO passwords (username,pass,nombre,apellido, correo)
                     VALUES(?,?,?,?,?)''', (username, sha256(password.encode()).hexdigest(), nombre, apellido, correo))
 
             self.data.commit()
@@ -83,7 +83,7 @@ class passw_manager:
         
         self.data.commit()
         self.data.close()
-        return user[0][2:]
+        return user[0]
 
 
     #######  Metodos de edicion del registro de un usuario ##########

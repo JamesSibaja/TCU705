@@ -19,7 +19,7 @@ class DatabaseGUI(BoxLayout):
         self.aplicacion = aplicacion
         self.table = table 
         self.edit = edit 
-        self.base.execute("SELECT Columns From `database` WHERE Proyecto = '"+self.table+"'")
+        self.base.execute("SELECT Columns From `database` WHERE Nombre = '"+self.table+"'")
         self.columns = self.base.fetchall()[0][0]
         #print(self.columns)
         #self.base.execute("ALTER TABLE `"+self.table+"` ADD PDF TEXT")
@@ -32,7 +32,8 @@ class DatabaseGUI(BoxLayout):
         self.numPag = 0
         self.MenuMain = ToolbarShow(on_press=self.toolbarHide)
         self.exit = Exit(on_press=self.salir)
-        self.search = Search(on_press=self.buscar)
+        self.search = Search(on_press=self.buscarpop)
+        self.res = Res(on_press=self.reset)
         #self.MenuMain = ToolbarTitle()
         self.tablas = False
         self.select = False
@@ -76,6 +77,7 @@ class DatabaseGUI(BoxLayout):
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagina.add_widget(Button(bold=True,background_color =(0,0,0,0),text='Siguiente >',on_press=self.siguientePagina))
+        #self.contenedorTrabajo = BoxLayout(orientation= 'vertical')
         self.contenedorLista = BoxLayout(padding = 10,orientation= 'vertical')
         for selectField in self.campos:
             self.filaTitulo.add_widget(TitleField(selectField.rstrip('.d')))
@@ -96,7 +98,7 @@ class DatabaseGUI(BoxLayout):
         self.submitOptions.append(ToolbarText(texto = 'Columnas',on_press=self.nuevoCampo))#
         self.submitOptions.append(ToolbarText(texto = 'Filtro',on_press=self.nuevoInicio))#
         self.submitOptions.append(ToolbarText(texto = 'Estadísticas',on_press=self.nuevoEst))#
-        self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
+        #self.submitOptions.append(ToolbarText(texto = 'Ajustes'))
         self.menubarBuilder()
         self.toolbar.add_widget(self.contenedor)
         self.subBoton = BoxLayout(size_hint=(1,None),height=50,padding= (15,5,15,10))
@@ -105,9 +107,14 @@ class DatabaseGUI(BoxLayout):
         self.contenedorLista.add_widget(self.filaTitulo)
         self.contenedorLista.add_widget(self.lista)
         self.contenedorLista.add_widget(self.pagina)
+
+        #self.contenedorTrabajo.add_widget(PiePagina(self.table))
+        #self.contenedorTrabajo.add_widget(self.contenedorLista)
         self.pantalla.add_widget(self.contenedorLista)
         self.add_widget(self.barraMenu)
         self.add_widget(self.pantalla)
+
+        self.add_widget(PiePagina(self.table))
 
         self.toolbarBuilder()
 
@@ -142,6 +149,8 @@ class DatabaseGUI(BoxLayout):
             if not (self.menuTitle==contOpt):
                 option.main = False
             contOpt = contOpt + 1  
+        
+        self.barraMenu.add_widget(self.res)
         self.barraMenu.add_widget(self.search)   
         self.barraMenu.add_widget(self.exit) 
  
@@ -171,6 +180,8 @@ class DatabaseGUI(BoxLayout):
             if(self.newEst):
                 self.contenedor.stack.add_widget(Title("Escoger Datos:"))
                 self.contenedor.stack.add_widget(Separador())
+            else:
+                self.resBarras()
 
             for posibleFiltro in self.nombres:
                 if(self.cambiarCampo):
@@ -197,10 +208,11 @@ class DatabaseGUI(BoxLayout):
                 
         else:            
             #Si se encuentra en el menú de filtros
-            if self.menuFiltro:                
+            if self.menuFiltro: 
+                self.resBarras()               
                 self.contenedor.stack.clear_widgets()
                 self.filtros = []
-                self.menuFiltro = False
+                #self.menuFiltro = False
                 if self.estadisticas:
                     self.submit = ButtonAccept(texto = 'Usar',on_press=self.usarFiltro)
                 else:
@@ -247,7 +259,7 @@ class DatabaseGUI(BoxLayout):
                     self.contenedor.stack.add_widget(Separador())
                     self.contenedor.stack.add_widget(ButtonAccept(texto = 'Calcular',on_press=self.calcular))
                     self.contenedor.stack.add_widget(Separador())
-                    self.subBoton.add_widget(ButtonAccept(texto = 'Volver',on_press=self.usarFiltro))
+                    #self.subBoton.add_widget(ButtonAccept(texto = 'Volver',on_press=self.usarFiltro))
               
                 else:
                     #Si se encuentra en el menú de ver o el de editar
@@ -258,6 +270,7 @@ class DatabaseGUI(BoxLayout):
                     # self.contenedor.stack.add_widget(ButtonAccept(texto = 'Buscar',on_press=self.buscar_gen))
                     # self.contenedor.stack.add_widget(Separador2())   
                     #self.contenedor.stack.add_widget(Separador2())
+                    self.resBarras()
                     if self.editar:
                         self.contenedor.stack.add_widget(ButtonMain(texto = 'Agregar columna',on_press=self.nuevaColumna))
                     cont = -1
@@ -282,9 +295,11 @@ class DatabaseGUI(BoxLayout):
                         self.contenedor.stack.add_widget(Separador())
                         self.contenedor.stack.add_widget(Title2('')) 
                     else:
-                        self.cuadroTexto = BoxLayout(size_hint= (1, None), height= 500)
-                        self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='middle',text_size=self.size)) 
-                        self.contenedor.stack.add_widget(self.cuadroTexto) 
+                        # self.cuadroTexto = BoxLayout(size_hint_y= None,height=300)
+                        # self.cuadroTexto.add_widget(Label(text='Ningún elemento seleccionado, haga click sobre algún elemento de la lista',valign='top', color=  (0,0,0,1),text_size=self.cuadroTexto.size)) 
+                        # self.contenedor.stack.add_widget(self.cuadroTexto) 
+                        self.contenedor.stack.add_widget(Title('Ningún elemento seleccionado, haga click sobre algún elemento de la lista',size_hint_y= None,height=300)) 
+                    
 
         self.contenedor.add_widget(self.contenedor.stack)
 
@@ -298,6 +313,8 @@ class DatabaseGUI(BoxLayout):
     def volverMenu(self,obj): #Función de la opción del menu ver
         self.menuTitle=0
         self.menubarBuilder()
+        if self.estadisticas:
+            self.numPag=0
         self.editar = False
         self.nuevoFiltro = False
         self.menuFiltro = False
@@ -312,6 +329,8 @@ class DatabaseGUI(BoxLayout):
 
     def editarMenu(self,obj): #Función de la opción del menu editar
         self.menuTitle=1
+        if self.estadisticas:
+            self.numPag=0
         self.editar = True
         self.menubarBuilder()
         self.nuevoFiltro = False
@@ -444,6 +463,22 @@ class DatabaseGUI(BoxLayout):
             self.lista.totalDatos = self.base.fetchall()[0][0]
         self.tablas = False
 
+    def resBarras(self): #Actualiza las columnas según las opciones seleccionadas
+        
+        self.filaTitulo.clear_widgets()
+        for selectField in self.campos:
+            self.filaTitulo.add_widget(TitleField(selectField.rstrip('.d')))
+           
+        # self.lista.reset()
+        # self.lista.build(entrada=self.campos,filtros= self.listaFiltros,pag=self.numPag,busqueda=self.filtros) 
+         
+       # if self.tablas:
+        filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
+        self.base.execute(filtro)
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.pagebarBuilder(0,True)
+       # self.tablas = False
+
     def buscar(self,obj=None): #Función que filtra la base
         self.lista.reset()
         self.tablas = False
@@ -451,9 +486,9 @@ class DatabaseGUI(BoxLayout):
         self.lista.build(entrada=self.campos,pag=0,filtros= self.listaFiltros,busqueda=self.filtros)
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
         self.base.execute(filtro)
-        print(self.base.fetchall())
-        # self.lista.totalDatos = self.base.fetchall()[0][0]
-        # self.lista.totalDatos2 = self.base.fetchall()[0][0]
+        #print(self.base.fetchall()[0][0])
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.lista.totalDatos
         self.pagebarBuilder(0,True)
 
     def buscar_gen(self,obj=None): #Función que filtra la base de forma general (busca en todos los campos)
@@ -474,10 +509,10 @@ class DatabaseGUI(BoxLayout):
                     for y in x:
                         self.lista.totalDatos=y
                         self.lista.totalDatos2=y
-        # self.base.execute(filtro)
-        # print(self.base.fetchall())
-        # self.lista.totalDatos = self.base.fetchall()[0][0]
-        # self.lista.totalDatos2 = self.base.fetchall()[0][0]
+        self.base.execute(filtro)
+        # print(self.base.fetchall()) buscar
+        self.lista.totalDatos = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.lista.totalDatos
         self.pagebarBuilder(0,True)
         self.listaFiltros = self.listaFiltros2
         self.filtros = self.filtros2
@@ -486,6 +521,8 @@ class DatabaseGUI(BoxLayout):
     def nuevoInicio(self,obj):
         self.menuTitle=3
         self.menubarBuilder()
+        if self.estadisticas:
+            self.numPag=0
         self.newEst = False
 
         self.cambiarCampo = False
@@ -499,6 +536,8 @@ class DatabaseGUI(BoxLayout):
 
         self.contenedor.show = False
         self.toolbar.show = False
+        self.lista.reset()
+        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
 
@@ -575,7 +614,7 @@ class DatabaseGUI(BoxLayout):
         filtro = "SELECT COUNT(`"+self.lista.index+"`) "+ self.lista.filtroWhere
         self.base.execute(filtro)
         self.lista.totalDatos = self.base.fetchall()[0][0]
-        self.lista.totalDatos2 = self.base.fetchall()[0][0]
+        self.lista.totalDatos2 = self.lista.totalDatos
         if self.menuTitle==4:
             self.volverMenu(obj)
         else:
@@ -599,7 +638,7 @@ class DatabaseGUI(BoxLayout):
                 contFiltro += 1
         if self.cambiarCampo:
             #print(self.columns)
-            filtro = "UPDATE `database` SET `Columns` = '"+ self.columns +"' WHERE `Proyecto` = '" + self.table +"'"
+            filtro = "UPDATE `database` SET `Columns` = '"+ self.columns +"' WHERE `Nombre` = '" + self.table +"'"
             #print(filtro)
             self.base.execute(filtro)
             self.conexion.commit()
@@ -614,6 +653,8 @@ class DatabaseGUI(BoxLayout):
     def nuevoCampo(self,obj):
         self.menuTitle=2
         self.menubarBuilder()
+        if self.estadisticas:
+            self.numPag=0
         self.cambiarCampo = True
         self.nuevoFiltro = False
         self.menuFiltro = False
@@ -622,6 +663,8 @@ class DatabaseGUI(BoxLayout):
         self.newEst = False 
         self.contenedor.show = False
         self.toolbar.show = False
+        self.lista.reset()
+        self.lista.build(entrada=self.campos,pag=self.numPag,filtros= self.listaFiltros,busqueda=self.filtros)
         self.toolbarHide(obj)
         self.contenedor.stack.scroll_y=1
 
@@ -681,9 +724,10 @@ class DatabaseGUI(BoxLayout):
             else:        
                 self.nombres.append(strName)
                 self.camposOpcion.append(False)
+                self.filtrosOpcion.append(False)
                 self.base.execute("ALTER TABLE `"+self.table+"` ADD `"+strName+"` TEXT")
 
-    def buscar(self,obj):
+    def buscarpop(self,obj):
 
         self.busqueda_gen = TextInput(hint_text='Ingrese termino de busqueda',size_hint_y=None,height=45)
         botonesPop = BoxLayout(size_hint=(1, None),height=30,orientation='horizontal')
@@ -692,12 +736,16 @@ class DatabaseGUI(BoxLayout):
                 title_align = 'center',
                 title_size = '20',
                 auto_dismiss=False,
-                size_hint=(None, None), size=(350, 200))
+                size_hint=(None, None), size=(350, 185))
         self.pop.content.add_widget(self.busqueda_gen)
+        self.pop.content.add_widget(BoxLayout(size_hint=(1, None),height=15))
         botonesPop.add_widget(Button(text='Cancelar', font_size= 20,on_press=self.cancelPop))
         botonesPop.add_widget(Button(text='Buscar', background_color=(0.6,0.6,0.8),font_size= 20,on_press=self.buscar_gen))
         self.pop.content.add_widget(botonesPop)
         self.pop.open()  
+
+    def reset(self,obj):
+        self.build()
 
     def salir(self,obj):
         self.upApp.build(3)
@@ -807,6 +855,11 @@ class MenuBar(BoxLayout):
 class OcultarBarra(FloatLayout):
     pass
 
+class Res(ButtonBehavior,Image,BoxLayout):
+    def __init__(self,**kwargs):
+        super(Res, self).__init__(**kwargs)
+        pass
+
 class Search(ButtonBehavior,Image,BoxLayout):
     def __init__(self,**kwargs):
         super(Search, self).__init__(**kwargs)
@@ -840,16 +893,16 @@ class TitleFilter(BoxLayout):
 class Title(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 
 class Title3(BoxLayout):
     g = StringProperty()
     bold = BooleanProperty()
-    def __init__(self,texto,bold=False,filtro = True):
-        super(Title3, self).__init__()
+    def __init__(self,texto,bold=False,filtro = True,**kwargs):
+        super(Title3, self).__init__(**kwargs)
         self.g = texto
         self.bold = bold
 
@@ -863,6 +916,12 @@ class TitlePag(BoxLayout):
     g = StringProperty()
     def __init__(self,texto):
         super(TitlePag, self).__init__()
+        self.g = texto
+
+class PiePagina(BoxLayout):
+    g = StringProperty()
+    def __init__(self,texto):
+        super(PiePagina, self).__init__()
         self.g = texto
 
 class ToolbarTitle(BoxLayout):

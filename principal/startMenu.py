@@ -1,3 +1,4 @@
+from typing import Text
 from kivy.uix.behaviors import focus
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.boxlayout import BoxLayout
@@ -9,6 +10,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.graphics import *
+from kivy.graphics import vertex_instructions
 from kivy.uix.behaviors import ToggleButtonBehavior
 
 from contrasenas import passw_manager
@@ -41,23 +43,53 @@ class MenuInicial(FloatLayout):
 
     def build(self, *args):
 
+       
+
+        self.logo=Image(size_hint=(.5, .35), pos_hint={'x':.25, 'y':.65},source="./imagenes/logo.png")
+        self.add_widget(self.logo)
+
         # self.add_widget(Label(text="Nombre de usuario", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.7}))
-        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.6}, multiline=False, write_tab= False, hint_text="Nombre de usuario")
+        self.user = TextInput(size_hint=(.4, .05), pos_hint={'x':.3, 'y':.5}, halign='center', multiline=False, write_tab= False, hint_text="Nombre de usuario")
         self.add_widget(self.user)
 
         # self.add_widget(Label(text="Contraseña", size_hint=(.4, .05), pos_hint={'x':.15, 'y':.5}))
-        self.password = TextInput(hint_text="Contraseña",password=True, size_hint=(.4, .05),  pos_hint={'x':.3, 'y':.5}, multiline=False, write_tab= False, on_text_validate=self.loggin)
+        self.password = TextInput(hint_text="Contraseña",password=True, size_hint=(.35, .05),  pos_hint={'x':.3, 'y':.4},halign='center', multiline=False, write_tab= False, on_text_validate=self.loggin)
         self.add_widget(self.password)
 
-        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.35},on_press=self.loggin)
+        self.fgpassword= Label(text="¿Olvidó su contraseña?", size_hint=(.35, .05),  pos_hint={'x':.3, 'y':.35}, color=(33/255, 73/255, 172/255),halign='center',bold=True)
+        self.add_widget(self.fgpassword)
+
+        
+        self.selector_pass = BTN_Ojito( size_hint=(.05, .05), pos_hint={'x':.65, 'y':.4}, on_press=self.ver_passwords1)
+        self.add_widget(self.selector_pass)
+    
+
+        self.submit = Button(text='Iniciar Sesión', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.19},on_press=self.loggin)
         self.add_widget(self.submit)
 
-        self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.25},on_press=self.btn_register)
-        self.add_widget(self.register)
+        self.registertext= Label(text="Si no tiene cuenta aun, [b][ref=some]Regístrese[/ref][/b]", size_hint=(.3, .075), pos_hint={'x':.33, 'y':.10},color=(33/255, 73/255, 172/255),halign='center',markup=True,on_ref_press=self.btn_register)
+        self.add_widget(self.registertext)
+
+        #self.registerbutton= Label(text='[ref=someregístres]e[/ref]',size_hint=(.3, .075), pos_hint={'x':.435, 'y':.10},color=(33/255, 73/255, 172/255),halign='left', on_ref_press=self.btn_register,bold=True,markup=True)
+        #self.add_widget(self.registerbutton)
+
+        #self.register = Button(text='Registrarse', size_hint=(.3, .1), pos_hint={'x':.35, 'y':.10},on_press=self.btn_register)
+        #self.add_widget(self.register)
 
         # Comandos empleados para la funcionalidad Focus, pasar entre inputs con el "TAB"
         self.user.focus_next =self.password
         self.password.focus_next = self.user
+
+    def ver_passwords1(self, obj):
+        if (obj == self.selector_pass):
+            if (self.password.password == True):
+                self.password.password=False
+                self.selector_pass.source='./imagenes/ojito.png'
+            else:
+                self.password.password = True
+                self.selector_pass.source='./imagenes/no_ojito.png'
+                ## Cambiar el ojito
+
 
 
 
@@ -65,7 +97,8 @@ class MenuInicial(FloatLayout):
 
     def loggin(self,obj):
         if self.contrasenas_manager.comparar(self.user.text, self.password.text):
-                self.upApp.build()
+            #print(self.contrasenas_manager.get_data(self.user.text)[0])
+            self.upApp.build(userID=self.contrasenas_manager.get_data(self.user.text)[0])
         else:
                 self.Fallo_UC()
 
@@ -88,7 +121,7 @@ class MenuInicial(FloatLayout):
         pop.open()
 
     # Metodo del boton de registro
-    def btn_register(self, obj):
+    def btn_register(self, obj,a):
         self.clear_widgets()
         self.pag_register = RegisterWindow(self)
         self.add_widget(self.pag_register)
@@ -149,9 +182,8 @@ class RegisterWindow(FloatLayout, FocusBehavior):
     def return_callback(self,obj=None):
         self.clear_widgets()
         # Limpia el fundo
-        with self.canvas:
-            Color(1,1,1)
-            Rectangle(size=self.size, pos=self.pos)
+       
+        self.canvas.clear()
 
         self.init_page.build(obj)
     
