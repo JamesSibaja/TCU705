@@ -1,6 +1,7 @@
 from lib import *
 from dataViewer import DataViewer
 from contrasenas import passw_manager
+from databaseManager import databaseManager
 SubiendoArchivo = False
 
 '''
@@ -14,7 +15,9 @@ class DatabaseMenu(BoxLayout):
     def __init__(self,upApp,base,aplicacion,userID,**kwargs):
         super(DatabaseMenu, self).__init__(**kwargs)
         self.baseName = base
+
         self.conexion = sqlite3.connect(self.baseName)
+        self.manager = databaseManager(self.baseName,self.conexion)
         self.base = self.conexion.cursor()
         self.userID = userID
         self.aplicacion = aplicacion
@@ -55,12 +58,12 @@ class DatabaseMenu(BoxLayout):
         self.build()
         
 
-    #Constructor de la ventana principal bus
+    #Constructor de la ventana principal bus close
     def build(self):
-        self.base.close()
-        self.conexion.close()
-        self.conexion = sqlite3.connect(self.baseName)
-        self.base = self.conexion.cursor()
+        # self.base.close()
+        # self.conexion.close()
+        # self.conexion = sqlite3.connect(self.baseName)
+        # self.base = self.conexion.cursor()
         self.base.execute("CREATE TEMPORARY TABLE myDatabases AS SELECT database.ID, database.Nombre, usersxdatabase.Permiso FROM database INNER JOIN usersxdatabase ON usersxdatabase.DatabaseID = database.ID WHERE usersxdatabase.UserID = "+str(self.userID))
         self.conexion.commit()
         self.clear_widgets()
@@ -111,7 +114,7 @@ class DatabaseMenu(BoxLayout):
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,manager=self.manager,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagebarBuilder(0,True)

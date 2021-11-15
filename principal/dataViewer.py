@@ -1,4 +1,5 @@
 from lib import *
+from databaseManager import databaseManager
 
 '''
 ===================
@@ -9,21 +10,23 @@ Diferentes widgets que complementan la ventana principal y conforman la interfaz
 #Widget que muestra los datos solicitados de la base de datos
 class DataViewer(ScrollView):
     end = BooleanProperty()
-    def __init__(self,upapp,index,entrada,base,table,aplicacion,conexion,pag=0,user = False):
+    def __init__(self,upapp,index,entrada,base,table,aplicacion,conexion,manager,pag=0,user = False):
         super(DataViewer, self).__init__()
         self.editar=False
         self.index = index
         self.upapp = upapp
-        self.totalDatos = 0
         self.table = table
+        self.manager = manager
+        self.totalDatos = self.manager.len(self.table)        
         self.filtroWhere = ''
         self.filtroSelect = ''
         self.aplicacion = aplicacion
         self.conexion = conexion
         self.calcEst = ''
         self.base = base
-        for row in self.base.execute("SELECT * From `"+ self.table+"`"):
-            self.totalDatos += 1
+        # for row in self.base.execute("SELECT * From `"+ self.table+"`"):
+        #     self.totalDatos += 1
+        
         self.total = self.totalDatos
         self.totalDatos2 = self.totalDatos
         self.id = 0
@@ -118,6 +121,8 @@ class DataViewer(ScrollView):
         #print(str(self.filas)+' '+str(bool(self.filas)))
         if not bool(self.filas):
             self.contenedor.add_widget(TitleTable('Sin elementos que mostrar'))
+        else:
+            self.contenedor.add_widget(FilaFin())
 
         self.add_widget(self.contenedor)
 
@@ -167,6 +172,7 @@ class DataViewer(ScrollView):
             num = num +1
         for row in self.filas:
             self.contenedor.add_widget(row)
+        self.contenedor.add_widget(FilaFin())
         self.add_widget(self.contenedor)
 
     def calc(self,text,filtroAct,pag=0): #Realizar el calculo de la estadística según las opciones escogidas
@@ -268,6 +274,9 @@ class Fila(BoxLayout):
         super(Fila, self).__init__()
         self.color=colorCampo
         self.dark =0
+
+class FilaFin(BoxLayout):
+    pass
 
 class campoBD2(BoxLayout):
     pdf = BooleanProperty()
