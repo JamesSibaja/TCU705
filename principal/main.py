@@ -61,7 +61,7 @@ class DatabaseGUIApp(App): #Aplicación principal
             self.pantalla.baseWidget.lista.reset()
             self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
         if self.subiendoBase:
-            # try:
+            try:
                 table = self.nombreArchivo
                 
                 xls = pd.ExcelFile(file_path.decode("utf-8")) #Se carga el documento de excel
@@ -78,8 +78,8 @@ class DatabaseGUIApp(App): #Aplicación principal
                 c.close
                 miConexion.close
                 self.subiendoBase = False
-            # except:
-            #     self.pantalla.error()
+            except:
+                self.pantalla.error()
             #self.pantalla.window.lista.reset()
 
     def buildList(self):
