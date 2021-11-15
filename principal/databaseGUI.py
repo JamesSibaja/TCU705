@@ -162,7 +162,7 @@ class DatabaseGUI(BoxLayout):
         self.contenedor.build()
         if self.nuevoFiltro or self.cambiarCampo or self.newEst:
             #Si se encuentra en el menú de columnas o se abre por primera vez el
-            #menú de estadistica o el de filtro
+            #menú de estadistica o el de filtro false
             contTexto =0
             for filtro in self.filtros:
                 self.palabrasBuscadas.update({self.listaFiltros[contTexto]:filtro.text})
@@ -362,6 +362,7 @@ class DatabaseGUI(BoxLayout):
 
     def editarFiltros(self,obj):  #Escoger que filtros se pueden usar
         self.nuevoFiltro = True
+        self.menuFiltro = False
         self.toolbarBuilder()
 
     def limpiar(self,obj): #Quitar todos los filtros
@@ -623,12 +624,14 @@ class DatabaseGUI(BoxLayout):
         self.menubarBuilder()
             
     def aceptarCambios(self,obj):
+        print('cambios')
         if(self.menuFiltro):
             self.nuevoFiltro = False
         self.menuFiltro = False
         if(self.cambiarCampo):
             self.cambiarColumnas()
         if(self.nuevoFiltro):
+            print('yes')
             self.menuFiltro = True
             contFiltro = 0
             self.listaFiltros = []

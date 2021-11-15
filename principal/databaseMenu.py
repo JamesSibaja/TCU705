@@ -1,7 +1,7 @@
 from lib import *
 from dataViewer import DataViewer
 from contrasenas import passw_manager
-from databaseManager import databaseManager
+#from databaseManager import databaseManager
 SubiendoArchivo = False
 
 '''
@@ -17,7 +17,7 @@ class DatabaseMenu(BoxLayout):
         self.baseName = base
 
         self.conexion = sqlite3.connect(self.baseName)
-        self.manager = databaseManager(self.baseName,self.conexion)
+        #self.manager = databaseManager(self.baseName,self.conexion)
         self.base = self.conexion.cursor()
         self.userID = userID
         self.aplicacion = aplicacion
@@ -114,7 +114,7 @@ class DatabaseMenu(BoxLayout):
                 self.camposOpcion.append(False)
             self.filtrosOpcion.append(False)
             contCampos+=1
-        self.lista = DataViewer(upapp=self,index=self.index,manager=self.manager,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
+        self.lista = DataViewer(upapp=self,index=self.index,entrada=self.campos,base = self.base,table = self.table,aplicacion=self.aplicacion,conexion = self.conexion,pag = self.numPag)
         self.pagina.add_widget(BoxLayout())
         self.pagina.add_widget(TitlePag(texto='Pág '+str(self.numPag+1) +' de '+str(math.ceil(self.lista.totalDatos/50))))
         self.pagebarBuilder(0,True)

@@ -82,12 +82,13 @@ class DatabaseGUIApp(App): #Aplicación principal
                 self.pantalla.error()
             #self.pantalla.window.lista.reset()
 
-    # def buildList(self):
-    #     self.pantalla.baseWidget.build()
-    #     '''
-    #     Arreglar est linea
-    #     '''
-    #     self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
+    def buildList(self):
+        #self.pantalla.baseWidget.build()
+        '''
+        Arreglar est linea
+        '''
+        self.pantalla.baseWidget.lista.reset()
+        self.pantalla.baseWidget.lista.build(entrada=self.pantalla.baseWidget.campos,pag=self.pag,filtros= self.pantalla.baseWidget.listaFiltros,busqueda=self.pantalla.baseWidget.filtros)
     
 
     def on_pause(self):
