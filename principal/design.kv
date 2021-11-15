@@ -389,10 +389,18 @@
 <MenuInicial>:
     canvas:
         Color:
-            rgb: (0.15,0.4, 0.6)
+            rgb: (1,1, 1)
         Rectangle:
             size: self.size
             pos: self.pos
+
+        Color:
+            rgb: (151/255, 195/255, 252/255)
+        RoundedRectangle:
+            size: (self.size[0]*0.6, self.size[1]*0.55)
+            pos: (self.width*0.2, self.height*0.05)
+            radius: [50]
+
 
 <NewDocument>:
     orientation: 'vertical'

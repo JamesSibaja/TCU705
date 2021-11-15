@@ -18,6 +18,7 @@ from startMenu import StartMenu
 from databaseGUI import DatabaseGUI
 from databaseMenu import DatabaseMenu
 
+
 # config
 from kivy.config import Config
 Config.set('kivy', 'keyboard_mode', 'system')
